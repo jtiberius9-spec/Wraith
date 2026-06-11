@@ -1,6 +1,0 @@
-pygame-ce 2.5.7 (SDL 2.32.10, Python 3.14.5)
-waiting for first frame...
-first frame 864x1920 — window (413, 918) (keymap 'df', switch=CTRL)
-RESULT: decoded 4319 (~40 fps), rendered 4313 over 107.2s
-pygame-ce 2.5.7 (SDL 2.32.10, Python 3.14.5)
-FAILED to start session
