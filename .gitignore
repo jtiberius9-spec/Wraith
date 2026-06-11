@@ -22,6 +22,8 @@ installer/
 
 # stray scratch files
 _readme_backup.txt
+build_log*.txt
+iss_log.txt
 gh_auth.log
 release_notes.md
 
