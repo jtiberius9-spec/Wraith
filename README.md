@@ -134,4 +134,4 @@ Edit the Delta Force map, then play:
 ## Status
 v0.1 — code-complete. Mirror + editor + injection protocol all implemented.
 End-to-end touch injection wants one short calibration pass on a connected
-device (sensitivity + orientation). Built by Lilith for James. 🖤
+device (sensitivity + orientation).
