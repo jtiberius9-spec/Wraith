@@ -1,0 +1,7 @@
+# Wraith integrated client deps. tkinter ships with Python; scrcpy/adb/ffmpeg
+# are external (ffmpeg only needed for recording).
+av>=12                       # H.264 decode (bundled ffmpeg)
+pygame-ce>=2.5               # window + in-window input (SDL2)
+numpy>=1.26                  # frame arrays
+opencv-python-headless>=4.9  # fast YUV->RGB (PyAV swscale is unusable on this build)
+sounddevice>=0.5             # low-latency PCM audio output

@@ -1,0 +1,124 @@
+{
+  "switchKey": "Key_Control",
+  "mouseMoveMap": {
+    "comment": "",
+    "type": "KMT_MOUSE_MOVE",
+    "startPos": {
+      "x": 0.615,
+      "y": 0.489
+    },
+    "speedRatioX": 1,
+    "speedRatioY": 1
+  },
+  "keyMapNodes": [
+    {
+      "comment": "",
+      "type": "KMT_CLICK",
+      "pos": {
+        "x": 0.8103,
+        "y": 0.7818
+      },
+      "key": "LeftButton",
+      "switchMap": false
+    },
+    {
+      "comment": "",
+      "type": "KMT_CLICK",
+      "pos": {
+        "x": 0.8943,
+        "y": 0.3207
+      },
+      "key": "Key_1",
+      "switchMap": false
+    },
+    {
+      "comment": "",
+      "type": "KMT_CLICK",
+      "pos": {
+        "x": 0.8863,
+        "y": 0.7007
+      },
+      "key": "Key_Space",
+      "switchMap": false
+    },
+    {
+      "comment": "",
+      "type": "KMT_CLICK",
+      "pos": {
+        "x": 0.8845,
+        "y": 0.8787
+      },
+      "key": "Key_Shift",
+      "switchMap": false
+    },
+    {
+      "comment": "",
+      "type": "KMT_CLICK",
+      "pos": {
+        "x": 0.7468,
+        "y": 0.8867
+      },
+      "key": "Key_E",
+      "switchMap": false
+    },
+    {
+      "comment": "",
+      "type": "KMT_CLICK",
+      "pos": {
+        "x": 0.6949,
+        "y": 0.7976
+      },
+      "key": "Key_R",
+      "switchMap": false
+    },
+    {
+      "comment": "",
+      "type": "KMT_CLICK",
+      "pos": {
+        "x": 0.6977,
+        "y": 0.4236
+      },
+      "key": "Key_F",
+      "switchMap": false
+    },
+    {
+      "comment": "",
+      "type": "KMT_STEER_WHEEL",
+      "centerPos": {
+        "x": 0.1486,
+        "y": 0.6749
+      },
+      "leftOffset": 0.10701,
+      "rightOffset": 0.10741,
+      "upOffset": 0.21146,
+      "downOffset": 0.21387,
+      "leftKey": "Key_A",
+      "rightKey": "Key_D",
+      "upKey": "Key_W",
+      "downKey": "Key_S",
+      "switchMap": false
+    },
+    {
+      "comment": "",
+      "type": "KMT_CLICK",
+      "pos": {
+        "x": 0.9238,
+        "y": 0.0615
+      },
+      "key": "Key_Escape",
+      "switchMap": false
+    },
+    {
+      "comment": "",
+      "type": "KMT_CLICK",
+      "pos": {
+        "x": 0.8755,
+        "y": 0.0575
+      },
+      "key": "Key_Tab",
+      "switchMap": false
+    }
+  ],
+  "width": 1080,
+  "height": 488
+}

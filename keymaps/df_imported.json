@@ -1,0 +1,318 @@
+{
+  "name": "DF Imported",
+  "bindings": [
+    {
+      "type": "aim",
+      "nx": 0.59,
+      "ny": 0.473,
+      "key": "",
+      "label": "",
+      "hold": true,
+      "keys": {},
+      "radius": 0.28,
+      "sensitivity": 1.0
+    },
+    {
+      "type": "tap",
+      "nx": 0.9452,
+      "ny": 0.1395,
+      "key": "mouse_left",
+      "label": "",
+      "hold": true,
+      "keys": {},
+      "radius": 0.1,
+      "sensitivity": 1.0
+    },
+    {
+      "type": "tap",
+      "nx": 0.957,
+      "ny": 0.4893,
+      "key": "mouse_right",
+      "label": "",
+      "hold": true,
+      "keys": {},
+      "radius": 0.1,
+      "sensitivity": 1.0
+    },
+    {
+      "type": "tap",
+      "nx": 0.9622,
+      "ny": 0.6946,
+      "key": "space",
+      "label": "",
+      "hold": true,
+      "keys": {},
+      "radius": 0.1,
+      "sensitivity": 1.0
+    },
+    {
+      "type": "tap",
+      "nx": 0.9551,
+      "ny": 0.9059,
+      "key": "z",
+      "label": "",
+      "hold": true,
+      "keys": {},
+      "radius": 0.1,
+      "sensitivity": 1.0
+    },
+    {
+      "type": "tap",
+      "nx": 0.8746,
+      "ny": 0.9023,
+      "key": "c",
+      "label": "",
+      "hold": true,
+      "keys": {},
+      "radius": 0.1,
+      "sensitivity": 1.0
+    },
+    {
+      "type": "tap",
+      "nx": 0.8049,
+      "ny": 0.9241,
+      "key": "r",
+      "label": "",
+      "hold": true,
+      "keys": {},
+      "radius": 0.1,
+      "sensitivity": 1.0
+    },
+    {
+      "type": "tap",
+      "nx": 0.9104,
+      "ny": 0.3611,
+      "key": "5",
+      "label": "",
+      "hold": true,
+      "keys": {},
+      "radius": 0.1,
+      "sensitivity": 1.0
+    },
+    {
+      "type": "tap",
+      "nx": 0.9623,
+      "ny": 0.3552,
+      "key": "f3",
+      "label": "",
+      "hold": true,
+      "keys": {},
+      "radius": 0.1,
+      "sensitivity": 1.0
+    },
+    {
+      "type": "tap",
+      "nx": 0.863,
+      "ny": 0.363,
+      "key": "alt",
+      "label": "",
+      "hold": true,
+      "keys": {},
+      "radius": 0.1,
+      "sensitivity": 1.0
+    },
+    {
+      "type": "tap",
+      "nx": 0.7594,
+      "ny": 0.2572,
+      "key": "t",
+      "label": "",
+      "hold": true,
+      "keys": {},
+      "radius": 0.1,
+      "sensitivity": 1.0
+    },
+    {
+      "type": "tap",
+      "nx": 0.7621,
+      "ny": 0.3451,
+      "key": "f",
+      "label": "",
+      "hold": true,
+      "keys": {},
+      "radius": 0.1,
+      "sensitivity": 1.0
+    },
+    {
+      "type": "tap",
+      "nx": 0.6994,
+      "ny": 0.5623,
+      "key": "h",
+      "label": "",
+      "hold": true,
+      "keys": {},
+      "radius": 0.1,
+      "sensitivity": 1.0
+    },
+    {
+      "type": "tap",
+      "nx": 0.6762,
+      "ny": 0.7106,
+      "key": "x",
+      "label": "",
+      "hold": true,
+      "keys": {},
+      "radius": 0.1,
+      "sensitivity": 1.0
+    },
+    {
+      "type": "tap",
+      "nx": 0.6377,
+      "ny": 0.9062,
+      "key": "g",
+      "label": "",
+      "hold": true,
+      "keys": {},
+      "radius": 0.1,
+      "sensitivity": 1.0
+    },
+    {
+      "type": "tap",
+      "nx": 0.3453,
+      "ny": 0.9201,
+      "key": "4",
+      "label": "",
+      "hold": true,
+      "keys": {},
+      "radius": 0.1,
+      "sensitivity": 1.0
+    },
+    {
+      "type": "tap",
+      "nx": 0.4464,
+      "ny": 0.9201,
+      "key": "1",
+      "label": "",
+      "hold": true,
+      "keys": {},
+      "radius": 0.1,
+      "sensitivity": 1.0
+    },
+    {
+      "type": "tap",
+      "nx": 0.5384,
+      "ny": 0.9182,
+      "key": "2",
+      "label": "",
+      "hold": true,
+      "keys": {},
+      "radius": 0.1,
+      "sensitivity": 1.0
+    },
+    {
+      "type": "tap",
+      "nx": 0.5912,
+      "ny": 0.9181,
+      "key": "3",
+      "label": "",
+      "hold": true,
+      "keys": {},
+      "radius": 0.1,
+      "sensitivity": 1.0
+    },
+    {
+      "type": "tap",
+      "nx": 0.5831,
+      "ny": 0.7265,
+      "key": "esc",
+      "label": "",
+      "hold": true,
+      "keys": {},
+      "radius": 0.1,
+      "sensitivity": 1.0
+    },
+    {
+      "type": "tap",
+      "nx": 0.112,
+      "ny": 0.1813,
+      "key": "m",
+      "label": "",
+      "hold": true,
+      "keys": {},
+      "radius": 0.1,
+      "sensitivity": 1.0
+    },
+    {
+      "type": "tap",
+      "nx": 0.078,
+      "ny": 0.4268,
+      "key": "q",
+      "label": "",
+      "hold": true,
+      "keys": {},
+      "radius": 0.1,
+      "sensitivity": 1.0
+    },
+    {
+      "type": "tap",
+      "nx": 0.188,
+      "ny": 0.4288,
+      "key": "e",
+      "label": "",
+      "hold": true,
+      "keys": {},
+      "radius": 0.1,
+      "sensitivity": 1.0
+    },
+    {
+      "type": "joystick",
+      "nx": 0.1343,
+      "ny": 0.7782,
+      "key": "",
+      "label": "",
+      "hold": true,
+      "keys": {
+        "up": "w",
+        "down": "s",
+        "left": "a",
+        "right": "d"
+      },
+      "radius": 0.14181,
+      "sensitivity": 1.0
+    },
+    {
+      "type": "tap",
+      "nx": 0.0235,
+      "ny": 0.9301,
+      "key": "tab",
+      "label": "",
+      "hold": true,
+      "keys": {},
+      "radius": 0.1,
+      "sensitivity": 1.0
+    },
+    {
+      "type": "tap",
+      "nx": 0.7853,
+      "ny": 0.1851,
+      "key": "b",
+      "label": "",
+      "hold": true,
+      "keys": {},
+      "radius": 0.1,
+      "sensitivity": 1.0
+    },
+    {
+      "type": "tap",
+      "nx": 0.889,
+      "ny": 0.2032,
+      "key": "shift",
+      "label": "",
+      "hold": true,
+      "keys": {},
+      "radius": 0.1,
+      "sensitivity": 1.0
+    },
+    {
+      "type": "tap",
+      "nx": 0.5501,
+      "ny": 0.8503,
+      "key": "v",
+      "label": "",
+      "hold": true,
+      "keys": {},
+      "radius": 0.1,
+      "sensitivity": 1.0
+    }
+  ]
+}

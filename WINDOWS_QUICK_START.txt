@@ -1,0 +1,20 @@
+Wraith Windows Quick Start
+
+1. Double-click:
+   Start-Wraith-GUI.bat
+
+2. If Python, scrcpy, or ffmpeg are missing, the launcher will try to install
+   them with winget. Windows may ask for confirmation.
+
+3. If something was installed, close the launcher window and double-click
+   Start-Wraith-GUI.bat again so Windows reloads PATH.
+
+4. Enable USB debugging on your Android phone and plug it in.
+
+First launch creates a local .venv folder and installs pynput automatically.
+Later launches open the GUI directly.
+
+Manual fallback:
+- Python 3.10+: https://www.python.org/downloads/windows/
+- scrcpy: https://github.com/Genymobile/scrcpy/releases
+- ffmpeg: https://www.gyan.dev/ffmpeg/builds/

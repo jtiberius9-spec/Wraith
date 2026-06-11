@@ -1,0 +1,67 @@
+{
+  "switchKey": "Key_Control",
+  "keyMapNodes": [
+    {
+      "comment": "",
+      "type": "KMT_CLICK",
+      "pos": {
+        "x": 0.1951,
+        "y": 0.857
+      },
+      "key": "Key_A",
+      "switchMap": false
+    },
+    {
+      "comment": "",
+      "type": "KMT_CLICK",
+      "pos": {
+        "x": 0.3069,
+        "y": 0.853
+      },
+      "key": "Key_S",
+      "switchMap": false
+    },
+    {
+      "comment": "",
+      "type": "KMT_CLICK",
+      "pos": {
+        "x": 0.4115,
+        "y": 0.8649
+      },
+      "key": "Key_D",
+      "switchMap": false
+    },
+    {
+      "comment": "",
+      "type": "KMT_CLICK",
+      "pos": {
+        "x": 0.585,
+        "y": 0.8649
+      },
+      "key": "Key_4",
+      "switchMap": false
+    },
+    {
+      "comment": "",
+      "type": "KMT_CLICK",
+      "pos": {
+        "x": 0.694,
+        "y": 0.859
+      },
+      "key": "Key_5",
+      "switchMap": false
+    },
+    {
+      "comment": "",
+      "type": "KMT_CLICK",
+      "pos": {
+        "x": 0.8031,
+        "y": 0.853
+      },
+      "key": "Key_6",
+      "switchMap": false
+    }
+  ],
+  "width": 1080,
+  "height": 488
+}
