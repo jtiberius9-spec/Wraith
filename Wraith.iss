@@ -1,7 +1,11 @@
 ; Wraith installer (Inno Setup). Per-user install — no admin prompt, and the
 ; install folder stays writable so keymaps/recordings save next to the .exe.
+; Paths are RELATIVE to this script so it builds anywhere (dev box or CI).
+; CI overrides the version per tag: ISCC /DMyAppVersion=0.4.0 Wraith.iss
 #define MyAppName "Wraith"
-#define MyAppVersion "0.3.0"
+#ifndef MyAppVersion
+#define MyAppVersion "0.4.0"
+#endif
 #define MyAppPublisher "James"
 #define MyAppExeName "Wraith.exe"
 
@@ -13,9 +17,9 @@ AppPublisher={#MyAppPublisher}
 DefaultDirName={localappdata}\Programs\Wraith
 DisableProgramGroupPage=yes
 PrivilegesRequired=lowest
-OutputDir=C:\wraith\installer
+OutputDir=installer
 OutputBaseFilename=Wraith-Setup-{#MyAppVersion}
-SetupIconFile=C:\wraith\wraith.ico
+SetupIconFile=wraith.ico
 Compression=lzma2/max
 SolidCompression=yes
 WizardStyle=modern
@@ -26,7 +30,7 @@ UninstallDisplayName={#MyAppName}
 Name: "desktopicon"; Description: "Create a &desktop shortcut"; GroupDescription: "Additional icons:"
 
 [Files]
-Source: "C:\wraith\dist\Wraith\*"; DestDir: "{app}"; Flags: recursesubdirs createallsubdirs ignoreversion
+Source: "dist\Wraith\*"; DestDir: "{app}"; Flags: recursesubdirs createallsubdirs ignoreversion
 
 [Icons]
 Name: "{autoprograms}\Wraith"; Filename: "{app}\{#MyAppExeName}"
