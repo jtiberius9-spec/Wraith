@@ -116,6 +116,10 @@ class VideoStream:
         self._proc: subprocess.Popen | None = None
         self._reader: threading.Thread | None = None
         self._run = False
+        # render loop sets this while the window is minimized: keep DECODING
+        # (so the stream stays at the live edge) but skip the YUV->RGB convert
+        # + copy — the most expensive per-frame CPU work nobody can see.
+        self.suspended = False
 
         self._lock = threading.Lock()
         self._frame = None          # latest RGB ndarray (H, W, 3)
@@ -350,6 +354,8 @@ class VideoStream:
                     dec = self._make_decoder()
                     continue
                 if newest is not None:
+                    if self.suspended:
+                        continue           # minimized -> decoded, not converted
                     try:
                         arr = self._to_rgb(newest)
                     except Exception as exc:
@@ -1189,6 +1195,10 @@ def run_window(serial: str | None = None, keymap_name: str = "df.json",
                     control.touch_up(MOUSE_PID, px, py)
                     mdown = False
 
+        # minimized -> the reader skips YUV->RGB (decode-only keeps the stream
+        # at the live edge so restoring is instant) and we idle the loop harder.
+        stream.suspended = not pygame.display.get_active() and not edit_mode
+
         arr, fw, fh, seq = stream.latest()
         new_frame = arr is not None and seq != last_seq
         if new_frame:
@@ -1239,7 +1249,9 @@ def run_window(serial: str | None = None, keymap_name: str = "df.json",
                 rendered += 1
         if run_seconds and (time.monotonic() - t0) >= run_seconds:
             running = False
-        clock.tick(120)
+        # 120Hz polling keeps input latency low while playing; a minimized
+        # window only needs enough ticks to notice events + the restore.
+        clock.tick(15 if stream.suspended else 120)
 
     dt = time.monotonic() - t0
     print(f"RESULT: decoded {stream.decoded} (~{stream.decoded/dt:.0f} fps), "
@@ -1280,13 +1292,22 @@ def cli(argv=None):
                     help="force software H.264 decode (hw d3d11va/dxva2 is default)")
     ap.add_argument("--codec", default="h265", choices=["h265", "h264"],
                     help="video codec (h265=HEVC, ~50%% more efficient, default)")
+    ap.add_argument("--preset", choices=["auto", "low", "medium", "high"],
+                    help="performance preset — overrides --max-size/--fps/--bitrate/"
+                         "--codec. 'auto' probes THIS PC (hw decode + cores) and "
+                         "picks the best fit; omit the flag for fully custom values")
     ap.add_argument("--no-toolbar", action="store_true",
                     help="hide the portrait nav sidebar in the mirror")
     ap.add_argument("--save-dir", help="folder for F12 recordings (default ~/Videos/Wraith)")
     ap.add_argument("--seconds", type=float, help="auto-quit after N seconds (testing)")
     a = ap.parse_args(argv)
     if a.no_hwdec:
-        os.environ["WRAITH_NO_HWDEC"] = "1"
+        os.environ["WRAITH_NO_HWDEC"] = "1"   # before resolve() so the probe sees it
+    if a.preset:
+        from .perf import resolve
+        p = resolve(a.preset)
+        a.max_size, a.fps = p["max_size"], p["fps"]
+        a.bitrate, a.codec = p["bitrate_mbps"] * 1_000_000, p["codec"]
     run_window(a.serial, keymap_name=a.keymap, run_seconds=a.seconds,
                max_size=a.max_size, bitrate=a.bitrate, fps=a.fps,
                screen_off=a.screen_off, audio=not a.no_audio, gain=a.gain,
