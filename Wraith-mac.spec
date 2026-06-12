@@ -10,7 +10,7 @@ binaries = []
 hiddenimports = [
     'wraith.mirror', 'wraith.launcher', 'wraith.editor', 'wraith.injector',
     'wraith.control', 'wraith.keymap', 'wraith.runtime', 'wraith.toolbar',
-    'wraith.updater',
+    'wraith.updater', 'wraith.perf',
 ]
 for pkg in ('av', 'cv2', 'sounddevice', 'pygame'):
     d, b, h = collect_all(pkg)
