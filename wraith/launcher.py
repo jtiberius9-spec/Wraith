@@ -53,6 +53,7 @@ class Launcher:
         self.fps_var      = tk.StringVar(value="60")
         self.recfmt_var   = tk.StringVar(value="mp4")
         self.codec_var    = tk.StringVar(value="H.265 (HEVC)")
+        self.preset_var   = tk.StringVar(value="Quality")   # defaults match Quality
         self.lockori_var  = tk.StringVar(value="no lock")
         self.savepath_var = tk.StringVar(value=str(Path.home() / "Videos" / "Wraith"))
         self.keymap_var   = tk.StringVar()
@@ -189,7 +190,7 @@ class Launcher:
         ttk.Label(br, text="Mbps").pack(side="left", padx=(4, 0))
         field(0, "max size", c=2)
         ttk.Combobox(cfg, textvariable=self.size_var, width=10, state="readonly",
-                     values=["1280", "1600", "1920", "2400", "0 (native)"]).grid(
+                     values=["1024", "1280", "1600", "1920", "2400", "0 (native)"]).grid(
             row=0, column=3, sticky="ew", padx=2)
 
         field(1, "fps")
@@ -236,8 +237,17 @@ class Launcher:
             ttk.Checkbutton(opts, text=lbl, variable=self.opt[key]).grid(
                 row=i // 2, column=i % 2, sticky="w", padx=4, pady=1)
 
+        # performance preset — one-click tuning so weak PCs don't have to guess
+        field(6, "performance")
+        pre = ttk.Combobox(cfg, textvariable=self.preset_var, width=10, state="readonly",
+                           values=["Low-end PC", "Balanced", "Quality", "Custom"])
+        pre.grid(row=6, column=1, sticky="ew", padx=2)
+        pre.bind("<<ComboboxSelected>>", self._apply_preset)
+        ttk.Label(cfg, text="Low-end = 1024p · 30fps · 4Mbps · H.264",
+                  foreground=MUTE).grid(row=6, column=2, columnspan=2, sticky="w", padx=2)
+
         ttk.Button(cfg, text="▶  Start", style="Go.TButton", command=self.connect).grid(
-            row=6, column=0, columnspan=4, sticky="ew", pady=(8, 0))
+            row=7, column=0, columnspan=4, sticky="ew", pady=(8, 0))
 
         # ---- USB line
         usb = ttk.LabelFrame(right, text="USB line", style="Panel.TLabelframe", padding=8)
@@ -351,6 +361,23 @@ class Launcher:
         d = filedialog.askdirectory(initialdir=self.savepath_var.get() or str(Path.home()))
         if d:
             self.savepath_var.set(d)
+
+    def _apply_preset(self, _ev=None):
+        """One-click tuning. Low-end favors small frames + H.264 (decodes cheaply
+        even without HEVC hardware); Quality matches the historical defaults;
+        Custom leaves whatever the user typed alone."""
+        presets = {
+            "Low-end PC": dict(size="1024", fps="30", bitrate="4",  codec="H.264"),
+            "Balanced":   dict(size="1280", fps="60", bitrate="8",  codec="H.265 (HEVC)"),
+            "Quality":    dict(size="1920", fps="60", bitrate="20", codec="H.265 (HEVC)"),
+        }
+        p = presets.get(self.preset_var.get())
+        if not p:
+            return                                   # Custom — don't touch fields
+        self.size_var.set(p["size"]); self.fps_var.set(p["fps"])
+        self.bitrate_var.set(p["bitrate"]); self.codec_var.set(p["codec"])
+        self._log(f"preset applied: {self.preset_var.get()} "
+                  f"({p['size']}p, {p['fps']}fps, {p['bitrate']}Mbps, {p['codec']})")
 
     def _update_name(self):
         self.refresh_devices()
