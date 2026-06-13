@@ -31,9 +31,6 @@ from .keymap import Keymap, Binding
 log = logging.getLogger("wraith.injector")
 
 AIM_PID = 1
-AIM_PID_ALT = 3             # look finger alternates 1<->3 across re-anchors so a
-                           # relative-look game (DF) sees each re-press as a NEW
-                           # finger with no prior position -> no recenter "flick"
 JOY_PID = 2
 TAP_PID_BASE = 10
 
@@ -89,7 +86,7 @@ class Injector:
         self._aim_left, self._aim_right = mx, W - mx
         self._aim_top, self._aim_bot = my, H - my
         self._aim_down = False
-        self._aim_pid = AIM_PID         # current look-finger id (alternates on re-anchor)
+        self._aim_pid = AIM_PID         # look-finger pointer id (single, like QtScrcpy)
         self._aim_x = 0
         self._aim_y = 0
         self._aim_pending = [0.0, 0.0]
@@ -293,25 +290,24 @@ class Injector:
         self._aim_x += dx * self.aim_sens
         self._aim_y += dy * self.aim_sens
 
-        # Re-anchor only at the screen margins (long continuous travel). On the
-        # edge we slide to the boundary, lift, and the next motion re-presses at
-        # the start anchor — infinite mouse travel without mid-screen stutter.
+        # Re-anchor at the screen margins for infinite mouse travel. This MUST
+        # match QtScrcpy, which is flick-free on DF: slide to the edge, lift, and
+        # re-press at the anchor ATOMICALLY in this same tick. The old code left
+        # the finger UP until the next motion tick — an ~8ms gap where the look
+        # gesture was broken mid-turn; during recoil DF saw the finger vanish and
+        # reappear at the anchor and read that as a recenter JUMP = the flick.
+        # Re-pressing now (finger never idle mid-turn) removes the gap. The
+        # camera does NOT move this tick; the next motion continues from the
+        # anchor, so within-bounds sensitivity is unchanged.
         if not (self._aim_left < self._aim_x < self._aim_right and
                 self._aim_top < self._aim_y < self._aim_bot):
             cx = int(min(max(self._aim_x, self._aim_left), self._aim_right))
             cy = int(min(max(self._aim_y, self._aim_top), self._aim_bot))
-            # Slide to the edge, lift — and let the NEXT motion re-press at the
-            # anchor (the `if not self._aim_down` block at the top). One planted
-            # finger between re-anchors, so within-bounds sensitivity is the
-            # snappy 1:1 of the pre-0.4.0 build (no 45ms park, no in-tick
-            # re-press). The flick was DF reading the edge->center recenter as
-            # the SAME finger jumping back; alternating the pointer id (below)
-            # makes each re-press a brand-new finger it can't delta against.
-            self.c.touch_move(self._aim_pid, cx, cy)
-            self.c.touch_up(self._aim_pid, cx, cy)
-            self._aim_down = False
-            # next stroke re-presses at the anchor under the OTHER id (new finger)
-            self._aim_pid = AIM_PID_ALT if self._aim_pid == AIM_PID else AIM_PID
+            self.c.touch_move(self._aim_pid, cx, cy)   # finish travel to the edge
+            self.c.touch_up(self._aim_pid, cx, cy)     # lift
+            self._aim_x, self._aim_y = self.aim_cx, self.aim_cy
+            self.c.touch_down(self._aim_pid, self._aim_x, self._aim_y)  # re-press NOW
+            # _aim_down stays True — the look finger is never idle between strokes.
         else:
             self.c.touch_move(self._aim_pid, int(self._aim_x), int(self._aim_y))
 
