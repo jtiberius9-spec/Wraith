@@ -38,9 +38,7 @@ JOY_PID = 2
 TAP_PID_BASE = 10
 
 AIM_TICK = 1 / 120          # aim engine / scheduler resolution
-AIM_MARGIN = 0.05           # screen headroom each side. Smaller = more look-finger
-                            # travel before a re-anchor (DF can't fully hide the
-                            # recenter, so fewer re-anchors = fewer recoil flicks)
+AIM_MARGIN = 0.12           # fraction of screen kept as travel headroom each side
 TAP_HOLD = 0.035            # quick-tap finger-down duration (s)
 
 
@@ -92,7 +90,6 @@ class Injector:
         self._aim_top, self._aim_bot = my, H - my
         self._aim_down = False
         self._aim_pid = AIM_PID         # current look-finger id (alternates on re-anchor)
-        self._recenter = None           # where the next re-press lands (set at re-anchor)
         self._aim_x = 0
         self._aim_y = 0
         self._aim_pending = [0.0, 0.0]
@@ -289,10 +286,7 @@ class Injector:
         self._aim_pending[1] = 0.0
 
         if not self._aim_down:
-            # re-press where the last re-anchor decided (opposite the edge we
-            # exited, for max continued travel), else the keymap anchor.
-            self._aim_x, self._aim_y = self._recenter or (self.aim_cx, self.aim_cy)
-            self._recenter = None
+            self._aim_x, self._aim_y = self.aim_cx, self.aim_cy
             self.c.touch_down(self._aim_pid, self._aim_x, self._aim_y)
             self._aim_down = True
 
@@ -316,16 +310,7 @@ class Injector:
             self.c.touch_move(self._aim_pid, cx, cy)
             self.c.touch_up(self._aim_pid, cx, cy)
             self._aim_down = False
-            # Re-press OPPOSITE the edge we exited so a sustained drag in that
-            # direction (recoil pull-down, a long turn) gets the FULL box again
-            # before the next re-anchor — far fewer recenters per spray/turn,
-            # which is what reduces visible flicks. Axes not exited stay centred.
-            rx = self._aim_left + 2 if self._aim_x >= self._aim_right else \
-                 self._aim_right - 2 if self._aim_x <= self._aim_left else self.aim_cx
-            ry = self._aim_top + 2 if self._aim_y >= self._aim_bot else \
-                 self._aim_bot - 2 if self._aim_y <= self._aim_top else self.aim_cy
-            self._recenter = (rx, ry)
-            # next stroke re-presses under the OTHER id (new finger, no history)
+            # next stroke re-presses at the anchor under the OTHER id (new finger)
             self._aim_pid = AIM_PID_ALT if self._aim_pid == AIM_PID else AIM_PID
         else:
             self.c.touch_move(self._aim_pid, int(self._aim_x), int(self._aim_y))
