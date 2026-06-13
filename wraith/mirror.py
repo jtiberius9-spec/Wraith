@@ -387,6 +387,9 @@ class VideoStream:
         """
         sc = ScrcpyControl(self.serial)
         sc.sock = self.ctrl_sock
+        sc.alive = True              # shares THIS live session's socket (no 2nd
+                                     # server) — it's connected, so don't let the
+                                     # default False trip a false "DISCONNECTED".
         sc.width, sc.height = self.dev_w, self.dev_h
         return sc
 
@@ -1055,7 +1058,7 @@ def run_window(serial: str | None = None, keymap_name: str = "df.json",
     def update_caption():
         if not control.alive:
             pygame.display.set_caption(
-                "Wraith — ⚠ PHONE DISCONNECTED   (F5 = reconnect · F9 = quit)")
+                "Wraith — ⚠ PHONE DISCONNECTED   (F9 = quit, then relaunch)")
             return
         if edit_mode:
             mode = "EDIT MODE (drag keys onto the screen, F10 = play)"
@@ -1150,15 +1153,6 @@ def run_window(serial: str | None = None, keymap_name: str = "df.json",
                           path or "", flush=True)
                 elif name == "f9":
                     running = False
-                elif name == "f5":         # revive a dropped control link
-                    print("reconnecting control link…", flush=True)
-                    ok = control.reconnect()
-                    if ok:
-                        rebuild_injector(cur_w, cur_h)   # fresh injector on new socket
-                    update_caption()
-                    print("control reconnected" if ok else
-                          "reconnect failed — if the phone rebooted, quit (F9) and relaunch",
-                          flush=True)
                 elif edit_mode:
                     pass                   # never leak game keys while editing
                 elif name == switch_key:

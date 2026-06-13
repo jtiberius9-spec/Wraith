@@ -258,21 +258,11 @@ class ScrcpyControl:
             pass
         self.sock = None
 
-    def reconnect(self) -> bool:
-        """Best-effort revival after an idle/USB drop: rebuild the server +
-        socket. Works when the DEVICE is still present (USB hiccup, doze); a
-        full reboot needs a fresh session (video stream is gone too). Returns
-        self.alive."""
-        try:
-            self.close()
-        except Exception:
-            pass
-        try:
-            self.start()
-        except Exception as exc:
-            log.warning("control reconnect failed: %s", exc)
-            self.alive = False
-        return self.alive
+    # NOTE: no in-place reconnect. In the mirror, this object SHARES the video
+    # session's socket (make_control: no 2nd server), so it doesn't own a server
+    # to restart — a genuine drop means the whole session is gone and the user
+    # relaunches. (The old reconnect() spawned a 2nd server over the live
+    # session and froze the UI.)
 
     # -- touch injection ------------------------------------------------------
     def _send_touch(self, action: int, pointer_id: int, x: int, y: int,
