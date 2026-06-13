@@ -53,6 +53,7 @@ class Launcher:
         self.fps_var      = tk.StringVar(value="60")
         self.recfmt_var   = tk.StringVar(value="mp4")
         self.codec_var    = tk.StringVar(value="H.265 (HEVC)")
+        self.preset_var   = tk.StringVar(value="High")      # defaults match High
         self.lockori_var  = tk.StringVar(value="no lock")
         self.savepath_var = tk.StringVar(value=str(Path.home() / "Videos" / "Wraith"))
         self.keymap_var   = tk.StringVar()
@@ -189,7 +190,7 @@ class Launcher:
         ttk.Label(br, text="Mbps").pack(side="left", padx=(4, 0))
         field(0, "max size", c=2)
         ttk.Combobox(cfg, textvariable=self.size_var, width=10, state="readonly",
-                     values=["1280", "1600", "1920", "2400", "0 (native)"]).grid(
+                     values=["1024", "1280", "1600", "1920", "2400", "0 (native)"]).grid(
             row=0, column=3, sticky="ew", padx=2)
 
         field(1, "fps")
@@ -236,8 +237,17 @@ class Launcher:
             ttk.Checkbutton(opts, text=lbl, variable=self.opt[key]).grid(
                 row=i // 2, column=i % 2, sticky="w", padx=4, pady=1)
 
+        # performance preset — one-click tuning so weak PCs don't have to guess
+        field(6, "performance")
+        pre = ttk.Combobox(cfg, textvariable=self.preset_var, width=12, state="readonly",
+                           values=["Auto (detect)", "Low", "Medium", "High", "Custom"])
+        pre.grid(row=6, column=1, sticky="ew", padx=2)
+        pre.bind("<<ComboboxSelected>>", self._apply_preset)
+        ttk.Label(cfg, text="Auto probes this PC (hw decode + cores)",
+                  foreground=MUTE).grid(row=6, column=2, columnspan=2, sticky="w", padx=2)
+
         ttk.Button(cfg, text="▶  Start", style="Go.TButton", command=self.connect).grid(
-            row=6, column=0, columnspan=4, sticky="ew", pady=(8, 0))
+            row=7, column=0, columnspan=4, sticky="ew", pady=(8, 0))
 
         # ---- USB line
         usb = ttk.LabelFrame(right, text="USB line", style="Panel.TLabelframe", padding=8)
@@ -351,6 +361,26 @@ class Launcher:
         d = filedialog.askdirectory(initialdir=self.savepath_var.get() or str(Path.home()))
         if d:
             self.savepath_var.set(d)
+
+    def _apply_preset(self, _ev=None):
+        """One-click tuning. 'Auto (detect)' probes THIS PC (hardware decode +
+        CPU cores — see wraith.perf) and fills the fields with the best fit;
+        Low/Medium/High pick a fixed bundle; Custom leaves the fields alone."""
+        from .perf import PRESETS, detect
+        sel = self.preset_var.get()
+        name = {"Auto (detect)": "auto", "Low": "low",
+                "Medium": "medium", "High": "high"}.get(sel)
+        if name is None:
+            return                                   # Custom — don't touch fields
+        if name == "auto":
+            name, p = detect()                       # local probe, ~ms
+        else:
+            p = dict(PRESETS[name])
+        self.size_var.set(str(p["max_size"])); self.fps_var.set(str(p["fps"]))
+        self.bitrate_var.set(str(p["bitrate_mbps"]))
+        self.codec_var.set("H.264" if p["codec"] == "h264" else "H.265 (HEVC)")
+        self._log(f"preset applied: {sel} -> {name} ({p['max_size']}p, "
+                  f"{p['fps']}fps, {p['bitrate_mbps']}Mbps, {p['codec']})")
 
     def _update_name(self):
         self.refresh_devices()

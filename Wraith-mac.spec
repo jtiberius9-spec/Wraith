@@ -10,7 +10,7 @@ binaries = []
 hiddenimports = [
     'wraith.mirror', 'wraith.launcher', 'wraith.editor', 'wraith.injector',
     'wraith.control', 'wraith.keymap', 'wraith.runtime', 'wraith.toolbar',
-    'wraith.updater',
+    'wraith.updater', 'wraith.perf',
 ]
 for pkg in ('av', 'cv2', 'sounddevice', 'pygame'):
     d, b, h = collect_all(pkg)
@@ -28,7 +28,7 @@ app = BUNDLE(
     coll, name='Wraith.app', icon='wraith.icns',
     bundle_identifier='com.wraith.app',
     info_plist={
-        'CFBundleShortVersionString': '0.3.0',
+        'CFBundleShortVersionString': '0.4.0',
         'NSHighResolutionCapable': True,
         # macOS REQUIRES these or the app is denied mic/network access:
         'NSMicrophoneUsageDescription': 'Wraith records your microphone into gameplay clips.',

@@ -9,7 +9,7 @@ binaries = []
 hiddenimports = [
     'wraith.mirror', 'wraith.launcher', 'wraith.editor',
     'wraith.injector', 'wraith.control', 'wraith.keymap', 'wraith.runtime',
-    'wraith.toolbar', 'wraith.updater',
+    'wraith.toolbar', 'wraith.updater', 'wraith.perf',
 ]
 
 # pull in each native package's data files + DLLs + submodules

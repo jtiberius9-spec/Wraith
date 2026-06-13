@@ -1,14 +1,16 @@
 """
-wraith.updater — dead-simple self-update via GitHub Releases.
+wraith.updater — dead-simple self-update via GitLab or GitHub Releases.
 
-TARGET below is "github:OWNER/REPO". The updater reads that repo's LATEST
-release (tag = version, the .exe asset = installer, release notes = changelog).
-To ship an update you just publish a GitHub release vX.Y.Z and attach
-Wraith-Setup-X.Y.Z.exe — friends click "Check for Updates" and get it.
+TARGET below is "gitlab:NAMESPACE/PROJECT" or "github:OWNER/REPO". The updater
+reads that project's LATEST release (tag = version, the .exe asset = installer,
+release notes = changelog). To ship an update you just publish a release
+vX.Y.Z with Wraith-Setup-X.Y.Z.exe attached — the repo's CI does exactly that
+on every tag — and friends click "Check for Updates" to get it. NOTE: the
+project must be PUBLIC (the updater talks to the API unauthenticated).
 
-Also accepts a plain JSON-manifest URL ({version,url,notes}) for non-GitHub
-hosting. Either form can be overridden WITHOUT rebuilding by dropping an
-`update_url.txt` next to Wraith.exe (contents = the github:… or the URL).
+Also accepts a plain JSON-manifest URL ({version,url,notes}) for other
+hosting. Any form can be overridden WITHOUT rebuilding by dropping an
+`update_url.txt` next to Wraith.exe (contents = the gitlab:/github:/URL).
 """
 
 from __future__ import annotations
@@ -21,8 +23,9 @@ import urllib.request
 from . import __version__
 from .runtime import app_dir, NO_WINDOW
 
-# EDIT THIS to your repo (or ship update_url.txt). Form: "github:owner/repo".
-DEFAULT_TARGET = "github:jtiberius9-spec/Wraith"
+# EDIT THIS to your repo (or ship update_url.txt).
+# Forms: "gitlab:namespace/project" (gitlab.com) | "github:owner/repo" | URL.
+DEFAULT_TARGET = "gitlab:the-thinker2/Wraith"
 
 
 def target() -> str:
@@ -63,6 +66,8 @@ def check(timeout: float = 8.0) -> dict | None:
     """Return {version,url,notes} if a NEWER release is available, else None."""
     t = target()
     try:
+        if t.startswith("gitlab:"):
+            return _check_gitlab(t.split(":", 1)[1].strip("/"), timeout)
         if t.startswith("github:"):
             return _check_github(t.split(":", 1)[1].strip("/"), timeout)
         with _open(t, timeout) as r:                      # plain JSON manifest
@@ -85,6 +90,28 @@ def _check_github(repo: str, timeout: float) -> dict | None:
     if not url:
         return None
     return {"version": tag, "url": url, "notes": (data.get("body") or "").strip()[:300]}
+
+
+def _check_gitlab(proj: str, timeout: float) -> dict | None:
+    """Latest GitLab Release of a PUBLIC gitlab.com project. The installer is
+    expected as a release asset LINK ending in .exe (the CI release job adds
+    one pointing at the package registry — a permanent, direct URL)."""
+    from urllib.parse import quote
+    api = f"https://gitlab.com/api/v4/projects/{quote(proj, safe='')}/releases?per_page=1"
+    with _open(api, timeout) as r:
+        rels = json.loads(r.read().decode("utf-8"))
+    if not rels:
+        return None
+    rel = rels[0]
+    tag = rel.get("tag_name") or ""
+    if not tag or not is_newer(tag):
+        return None
+    url = next((l["url"] for l in (rel.get("assets") or {}).get("links", [])
+                if str(l.get("name", "")).lower().endswith(".exe")), None)
+    if not url:
+        return None
+    return {"version": tag, "url": url,
+            "notes": (rel.get("description") or "").strip()[:300]}
 
 
 def download(url: str, dest, progress=None, timeout: float = 60.0):
