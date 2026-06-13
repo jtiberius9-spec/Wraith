@@ -28,7 +28,7 @@ app = BUNDLE(
     coll, name='Wraith.app', icon='wraith.icns',
     bundle_identifier='com.wraith.app',
     info_plist={
-        'CFBundleShortVersionString': '0.4.0',
+        'CFBundleShortVersionString': '0.4.1',
         'NSHighResolutionCapable': True,
         # macOS REQUIRES these or the app is denied mic/network access:
         'NSMicrophoneUsageDescription': 'Wraith records your microphone into gameplay clips.',

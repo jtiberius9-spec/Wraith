@@ -983,10 +983,13 @@ def run_window(serial: str | None = None, keymap_name: str = "df.json",
     def send_key(keycode):
         # INJECT_KEYCODE (type 0): action, keycode, repeat, metaState — down+up
         for action in (0, 1):
+            if not control.sock:
+                return
             try:
                 control.sock.sendall(struct.pack(">BBiii", 0, action, keycode, 0, 0))
-            except OSError:
-                pass
+            except OSError as exc:
+                control._mark_dead(exc)
+                return
 
     def send_text(s):
         # INJECT_TEXT (type 1): 4-byte BE length + UTF-8 — types into the focused
@@ -1020,7 +1023,10 @@ def run_window(serial: str | None = None, keymap_name: str = "df.json",
 
         def _expand_notif():
             if control.sock:
-                control.sock.sendall(struct.pack(">B", 5))  # EXPAND_NOTIFICATION_PANEL
+                try:
+                    control.sock.sendall(struct.pack(">B", 5))  # EXPAND_NOTIFICATION_PANEL
+                except OSError as exc:
+                    control._mark_dead(exc)
 
         tb = Toolbar(send_key=send_key, set_screen=stream.set_screen_power,
                      expand_notif=_expand_notif)
@@ -1047,6 +1053,10 @@ def run_window(serial: str | None = None, keymap_name: str = "df.json",
         return None
 
     def update_caption():
+        if not control.alive:
+            pygame.display.set_caption(
+                "Wraith — ⚠ PHONE DISCONNECTED   (F5 = reconnect · F9 = quit)")
+            return
         if edit_mode:
             mode = "EDIT MODE (drag keys onto the screen, F10 = play)"
         elif game_mode:
@@ -1108,6 +1118,7 @@ def run_window(serial: str | None = None, keymap_name: str = "df.json",
 
     rendered = 0
     last_seq = -1
+    prev_alive = control.alive
     t0 = time.monotonic()
     running = True
     while running:
@@ -1120,6 +1131,12 @@ def run_window(serial: str | None = None, keymap_name: str = "df.json",
                 running = False
             elif ev.type == pygame.VIDEORESIZE:
                 screen = pygame.display.set_mode(ev.size, pygame.RESIZABLE)
+            elif ev.type == getattr(pygame, "WINDOWRESTORED", -1):
+                # un-maximize / un-minimize -> snap the window back to the phone's
+                # aspect. A maximized (wide) window leaves a portrait phone
+                # pillarboxed, and restoring kept that wide shape = "stuck in
+                # landscape"; re-fitting returns it to a portrait window.
+                fit_window(cur_w, cur_h, KeymapEditor.SIDEBAR_W if edit_mode else 0)
             elif ev.type == pygame.KEYDOWN:
                 name = _norm_key(pygame, ev.key)
                 if name == "f10":          # in-window keymap editor
@@ -1133,6 +1150,15 @@ def run_window(serial: str | None = None, keymap_name: str = "df.json",
                           path or "", flush=True)
                 elif name == "f9":
                     running = False
+                elif name == "f5":         # revive a dropped control link
+                    print("reconnecting control link…", flush=True)
+                    ok = control.reconnect()
+                    if ok:
+                        rebuild_injector(cur_w, cur_h)   # fresh injector on new socket
+                    update_caption()
+                    print("control reconnected" if ok else
+                          "reconnect failed — if the phone rebooted, quit (F9) and relaunch",
+                          flush=True)
                 elif edit_mode:
                     pass                   # never leak game keys while editing
                 elif name == switch_key:
@@ -1198,6 +1224,12 @@ def run_window(serial: str | None = None, keymap_name: str = "df.json",
         # minimized -> the reader skips YUV->RGB (decode-only keeps the stream
         # at the live edge so restoring is instant) and we idle the loop harder.
         stream.suspended = not pygame.display.get_active() and not edit_mode
+
+        # surface a control-link drop (USB suspend / device doze or reboot during
+        # a long idle session) in the title bar instead of crashing on the tap.
+        if control.alive != prev_alive:
+            update_caption()
+            prev_alive = control.alive
 
         arr, fw, fh, seq = stream.latest()
         new_frame = arr is not None and seq != last_seq

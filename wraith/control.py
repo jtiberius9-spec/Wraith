@@ -149,6 +149,7 @@ class ScrcpyControl:
         self.version = detect_scrcpy_version()
         self.sock: socket.socket | None = None
         self._proc: subprocess.Popen | None = None
+        self.alive = False          # True once the control socket is usable
         # device landscape resolution (W>H). Filled by connect().
         self.width = 0
         self.height = 0
@@ -212,12 +213,17 @@ class ScrcpyControl:
             try:
                 s = socket.create_connection(("127.0.0.1", self.port), timeout=1.0)
                 s.setsockopt(socket.IPPROTO_TCP, socket.TCP_NODELAY, 1)
+                # keepalive so a peer that vanishes (USB suspend, device doze or
+                # reboot during a long idle/minimized session) is detected by the
+                # OS instead of only surfacing as a write error on the next tap.
+                s.setsockopt(socket.SOL_SOCKET, socket.SO_KEEPALIVE, 1)
                 # tunnel_forward -> server sends a dummy byte on the first socket
                 dummy = s.recv(1)
                 if dummy == b"":
                     s.close()
                     raise ConnectionError("empty dummy byte")
                 self.sock = s
+                self.alive = True
                 return
             except OSError as exc:
                 last = exc
@@ -225,6 +231,7 @@ class ScrcpyControl:
         raise AdbError(f"could not connect to control socket: {last}")
 
     def close(self) -> None:
+        self.alive = False
         try:
             if self.sock:
                 self.sock.close()
@@ -237,11 +244,44 @@ class ScrcpyControl:
         except Exception:
             pass
 
+    # -- connection health ----------------------------------------------------
+    def _mark_dead(self, exc: Exception | None = None) -> None:
+        """Tear down a control socket that errored. Logged once per drop so a
+        flurry of failing taps doesn't spam the log."""
+        if self.alive and exc is not None:
+            log.warning("control socket lost: %s", exc)
+        self.alive = False
+        try:
+            if self.sock:
+                self.sock.close()
+        except Exception:
+            pass
+        self.sock = None
+
+    def reconnect(self) -> bool:
+        """Best-effort revival after an idle/USB drop: rebuild the server +
+        socket. Works when the DEVICE is still present (USB hiccup, doze); a
+        full reboot needs a fresh session (video stream is gone too). Returns
+        self.alive."""
+        try:
+            self.close()
+        except Exception:
+            pass
+        try:
+            self.start()
+        except Exception as exc:
+            log.warning("control reconnect failed: %s", exc)
+            self.alive = False
+        return self.alive
+
     # -- touch injection ------------------------------------------------------
     def _send_touch(self, action: int, pointer_id: int, x: int, y: int,
-                    pressure: float, buttons: int) -> None:
+                    pressure: float, buttons: int) -> bool:
+        """Inject one MotionEvent. Returns False (never raises) if the control
+        link is down, so a vanished phone degrades gracefully instead of
+        crashing the app on the next tap."""
         if not self.sock:
-            raise AdbError("control socket not connected")
+            return False
         x = max(0, min(int(x), self.width - 1))
         y = max(0, min(int(y), self.height - 1))
         msg = struct.pack(
@@ -255,16 +295,21 @@ class ScrcpyControl:
             0,            # action_button
             buttons,
         )
-        self.sock.sendall(msg)
+        try:
+            self.sock.sendall(msg)
+            return True
+        except OSError as exc:
+            self._mark_dead(exc)
+            return False
 
-    def touch_down(self, pointer_id: int, x: int, y: int) -> None:
-        self._send_touch(ACTION_DOWN, pointer_id, x, y, 1.0, BUTTON_PRIMARY)
+    def touch_down(self, pointer_id: int, x: int, y: int) -> bool:
+        return self._send_touch(ACTION_DOWN, pointer_id, x, y, 1.0, BUTTON_PRIMARY)
 
-    def touch_move(self, pointer_id: int, x: int, y: int) -> None:
-        self._send_touch(ACTION_MOVE, pointer_id, x, y, 1.0, BUTTON_PRIMARY)
+    def touch_move(self, pointer_id: int, x: int, y: int) -> bool:
+        return self._send_touch(ACTION_MOVE, pointer_id, x, y, 1.0, BUTTON_PRIMARY)
 
-    def touch_up(self, pointer_id: int, x: int, y: int) -> None:
-        self._send_touch(ACTION_UP, pointer_id, x, y, 0.0, 0)
+    def touch_up(self, pointer_id: int, x: int, y: int) -> bool:
+        return self._send_touch(ACTION_UP, pointer_id, x, y, 0.0, 0)
 
     def tap(self, pointer_id: int, x: int, y: int, hold: float = 0.0) -> None:
         self.touch_down(pointer_id, x, y)
