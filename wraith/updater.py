@@ -25,7 +25,9 @@ from .runtime import app_dir, NO_WINDOW
 
 # EDIT THIS to your repo (or ship update_url.txt).
 # Forms: "gitlab:namespace/project" (gitlab.com) | "github:owner/repo" | URL.
-DEFAULT_TARGET = "gitlab:the-thinker2/Wraith"
+# Releases live on GitHub: the friend's installed copy already targets it, and
+# GitLab CI needs a verified (card) account. gitlab: support is kept for later.
+DEFAULT_TARGET = "github:jtiberius9-spec/Wraith"
 
 
 def target() -> str:

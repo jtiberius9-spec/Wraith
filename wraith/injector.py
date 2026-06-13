@@ -37,7 +37,6 @@ TAP_PID_BASE = 10
 AIM_TICK = 1 / 120          # aim engine / scheduler resolution
 AIM_MARGIN = 0.12           # fraction of screen kept as travel headroom each side
 TAP_HOLD = 0.035            # quick-tap finger-down duration (s)
-AIM_LIFT_S = 0.045          # stillness before lifting the look finger (no-fling)
 
 
 class Injector:
@@ -87,7 +86,6 @@ class Injector:
         self._aim_left, self._aim_right = mx, W - mx
         self._aim_top, self._aim_bot = my, H - my
         self._aim_down = False
-        self._aim_lifting = False      # margin lift in progress (finger parked)
         self._aim_x = 0
         self._aim_y = 0
         self._aim_pending = [0.0, 0.0]
@@ -267,8 +265,6 @@ class Injector:
     def _aim_tick(self) -> None:
         if not self.aim:
             return
-        if self._aim_lifting:
-            return              # finger parked for a no-fling lift; deltas accumulate
         dx, dy = self._aim_pending
         if not (dx or dy):
             # mouse still -> keep the look finger planted (QtScrcpy behaviour:
@@ -292,20 +288,24 @@ class Injector:
                 self._aim_top < self._aim_y < self._aim_bot):
             cx = int(min(max(self._aim_x, self._aim_left), self._aim_right))
             cy = int(min(max(self._aim_y, self._aim_top), self._aim_bot))
-            # Park the finger briefly before lifting. Games with camera fling
-            # inertia (WWM) read an instant move->up as a FLICK and the view
-            # keeps sailing ("camera jumps"); ~45ms of stillness zeroes the
-            # tracked velocity so the lift is clean. Inertia-less FPS games
-            # (DF) don't care, so this is safe for both.
+            # Seamless margin re-anchor IN THIS TICK — no parked freeze. The old
+            # 45ms park let mouse deltas pile into _aim_pending and then dumped
+            # them as one jump on re-press: that snap was the "aim flick" in DF.
+            # Instead: slide to the edge, emit a duplicate same-point sample so
+            # fling-inertia cameras (WWM) read velocity 0 on lift (no sailing),
+            # then immediately re-press at the anchor and apply the OVERSHOOT so
+            # the turn continues without losing or buffering a single frame.
+            over_x = self._aim_x - cx
+            over_y = self._aim_y - cy
             self.c.touch_move(AIM_PID, cx, cy)
-            self._aim_lifting = True
-
-            def _lift(cx=cx, cy=cy):
-                self.c.touch_move(AIM_PID, cx, cy)
-                self.c.touch_up(AIM_PID, cx, cy)
-                self._aim_down = False
-                self._aim_lifting = False
-            self._schedule(AIM_LIFT_S, _lift)
+            self.c.touch_move(AIM_PID, cx, cy)   # zero-velocity sample -> no fling
+            self.c.touch_up(AIM_PID, cx, cy)
+            nx = int(min(max(self.aim_cx + over_x, self._aim_left), self._aim_right))
+            ny = int(min(max(self.aim_cy + over_y, self._aim_top), self._aim_bot))
+            self.c.touch_down(AIM_PID, self.aim_cx, self.aim_cy)
+            self.c.touch_move(AIM_PID, nx, ny)
+            self._aim_x, self._aim_y = nx, ny
+            self._aim_down = True
         else:
             self.c.touch_move(AIM_PID, int(self._aim_x), int(self._aim_y))
 
@@ -322,7 +322,6 @@ class Injector:
             if self._aim_down:
                 self.c.touch_up(AIM_PID, int(self._aim_x), int(self._aim_y))
                 self._aim_down = False
-            self._aim_lifting = False   # a cleared _sched would orphan the lift
             self._aim_pending[0] = self._aim_pending[1] = 0.0
             self._sched.clear()
         except Exception as exc:  # pragma: no cover
