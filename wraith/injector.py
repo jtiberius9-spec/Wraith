@@ -288,24 +288,20 @@ class Injector:
                 self._aim_top < self._aim_y < self._aim_bot):
             cx = int(min(max(self._aim_x, self._aim_left), self._aim_right))
             cy = int(min(max(self._aim_y, self._aim_top), self._aim_bot))
-            # Seamless margin re-anchor IN THIS TICK — no parked freeze. The old
-            # 45ms park let mouse deltas pile into _aim_pending and then dumped
-            # them as one jump on re-press: that snap was the "aim flick" in DF.
-            # Instead: slide to the edge, emit a duplicate same-point sample so
-            # fling-inertia cameras (WWM) read velocity 0 on lift (no sailing),
-            # then immediately re-press at the anchor and apply the OVERSHOOT so
-            # the turn continues without losing or buffering a single frame.
-            over_x = self._aim_x - cx
-            over_y = self._aim_y - cy
+            # Slide to the edge, settle, lift — and let the NEXT motion re-press
+            # at the anchor (the `if not self._aim_down` block at the top). This
+            # is the original infinite-travel feel: ONE continuous planted finger
+            # between re-anchors, so within-bounds sensitivity is untouched.
+            # The duplicate same-point sample gives an inertia camera (WWM) a
+            # zero-velocity reading so it doesn't fling on lift. What changed vs
+            # the pre-0.4.0 build is ONLY that the 45ms "park" is gone: that park
+            # froze the finger while mouse deltas piled into _aim_pending, then
+            # dumped them as one jump on re-press = the DF "aim flick". Removing
+            # it (not re-pressing in-tick) keeps the snappy 1:1 feel AND no flick.
             self.c.touch_move(AIM_PID, cx, cy)
             self.c.touch_move(AIM_PID, cx, cy)   # zero-velocity sample -> no fling
             self.c.touch_up(AIM_PID, cx, cy)
-            nx = int(min(max(self.aim_cx + over_x, self._aim_left), self._aim_right))
-            ny = int(min(max(self.aim_cy + over_y, self._aim_top), self._aim_bot))
-            self.c.touch_down(AIM_PID, self.aim_cx, self.aim_cy)
-            self.c.touch_move(AIM_PID, nx, ny)
-            self._aim_x, self._aim_y = nx, ny
-            self._aim_down = True
+            self._aim_down = False
         else:
             self.c.touch_move(AIM_PID, int(self._aim_x), int(self._aim_y))
 
