@@ -31,6 +31,9 @@ from .keymap import Keymap, Binding
 log = logging.getLogger("wraith.injector")
 
 AIM_PID = 1
+AIM_PID_ALT = 3             # look finger alternates 1<->3 across re-anchors so a
+                           # relative-look game (DF) sees each re-press as a NEW
+                           # finger with no prior position -> no recenter "flick"
 JOY_PID = 2
 TAP_PID_BASE = 10
 
@@ -86,6 +89,7 @@ class Injector:
         self._aim_left, self._aim_right = mx, W - mx
         self._aim_top, self._aim_bot = my, H - my
         self._aim_down = False
+        self._aim_pid = AIM_PID         # current look-finger id (alternates on re-anchor)
         self._aim_x = 0
         self._aim_y = 0
         self._aim_pending = [0.0, 0.0]
@@ -254,8 +258,16 @@ class Injector:
 
         ox = self.joy_offsets["right"] if vx > 0 else self.joy_offsets["left"]
         oy = self.joy_offsets["down"] if vy > 0 else self.joy_offsets["up"]
-        tx = self.joy_cx + (vx * ox)
-        ty = self.joy_cy + (vy * oy)
+        dx_off = vx * ox
+        dy_off = vy * oy
+        if vx and vy:
+            # diagonal (e.g. W+A strafe): a full ox on EACH axis lands ~1.41x
+            # past the joystick ring, which DF clamps back to a single axis ->
+            # "just goes left, no strafe". Scale to the ring so both axes hold.
+            dx_off = int(dx_off * 0.70710678)
+            dy_off = int(dy_off * 0.70710678)
+        tx = self.joy_cx + dx_off
+        ty = self.joy_cy + dy_off
         if not self._joy_down:
             self.c.touch_down(JOY_PID, self.joy_cx, self.joy_cy)
             self._joy_down = True
@@ -275,7 +287,7 @@ class Injector:
 
         if not self._aim_down:
             self._aim_x, self._aim_y = self.aim_cx, self.aim_cy
-            self.c.touch_down(AIM_PID, self._aim_x, self._aim_y)
+            self.c.touch_down(self._aim_pid, self._aim_x, self._aim_y)
             self._aim_down = True
 
         self._aim_x += dx * self.aim_sens
@@ -288,22 +300,21 @@ class Injector:
                 self._aim_top < self._aim_y < self._aim_bot):
             cx = int(min(max(self._aim_x, self._aim_left), self._aim_right))
             cy = int(min(max(self._aim_y, self._aim_top), self._aim_bot))
-            # Slide to the edge, settle, lift — and let the NEXT motion re-press
-            # at the anchor (the `if not self._aim_down` block at the top). This
-            # is the original infinite-travel feel: ONE continuous planted finger
-            # between re-anchors, so within-bounds sensitivity is untouched.
-            # The duplicate same-point sample gives an inertia camera (WWM) a
-            # zero-velocity reading so it doesn't fling on lift. What changed vs
-            # the pre-0.4.0 build is ONLY that the 45ms "park" is gone: that park
-            # froze the finger while mouse deltas piled into _aim_pending, then
-            # dumped them as one jump on re-press = the DF "aim flick". Removing
-            # it (not re-pressing in-tick) keeps the snappy 1:1 feel AND no flick.
-            self.c.touch_move(AIM_PID, cx, cy)
-            self.c.touch_move(AIM_PID, cx, cy)   # zero-velocity sample -> no fling
-            self.c.touch_up(AIM_PID, cx, cy)
+            # Slide to the edge, lift — and let the NEXT motion re-press at the
+            # anchor (the `if not self._aim_down` block at the top). One planted
+            # finger between re-anchors, so within-bounds sensitivity is the
+            # snappy 1:1 of the pre-0.4.0 build (no 45ms park, no in-tick
+            # re-press). The flick was DF reading the edge->center recenter as
+            # the SAME finger jumping back; alternating the pointer id (below)
+            # makes each re-press a brand-new finger it can't delta against.
+            self.c.touch_move(self._aim_pid, cx, cy)
+            self.c.touch_up(self._aim_pid, cx, cy)
             self._aim_down = False
+            # next stroke re-presses under the OTHER id, so DF can't read the
+            # edge->center recenter as a continuation of the same finger.
+            self._aim_pid = AIM_PID_ALT if self._aim_pid == AIM_PID else AIM_PID
         else:
-            self.c.touch_move(AIM_PID, int(self._aim_x), int(self._aim_y))
+            self.c.touch_move(self._aim_pid, int(self._aim_x), int(self._aim_y))
 
     # -- cleanup --------------------------------------------------------------
     def _release_all(self) -> None:
@@ -316,7 +327,7 @@ class Injector:
                 self.c.touch_up(JOY_PID, self.joy_cx, self.joy_cy)
                 self._joy_down = False
             if self._aim_down:
-                self.c.touch_up(AIM_PID, int(self._aim_x), int(self._aim_y))
+                self.c.touch_up(self._aim_pid, int(self._aim_x), int(self._aim_y))
                 self._aim_down = False
             self._aim_pending[0] = self._aim_pending[1] = 0.0
             self._sched.clear()
