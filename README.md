@@ -12,8 +12,8 @@ inject multi-touch events — fast enough for aiming.
 ```
 ┌─────────────┐     video+audio      ┌──────────────┐
 │   scrcpy    │◀─────────────────────│              │
-│ (mirror win)│                      │    sunny     │
-└─────────────┘                      │  (Android)   │
+│ (mirror win)│                      │   ANDROID    │
+└─────────────┘                      │   (phone)    │
 ┌─────────────┐  touch inject (TCP)  │              │
 │   Wraith    │─────────────────────▶│              │
 │ kbd+mouse → │   own control server └──────────────┘

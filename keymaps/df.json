@@ -1,412 +1,576 @@
 {
-  "switchKey": "Key_Control",
-  "mouseMoveMap": {
-    "type": "KMT_MOUSE_MOVE",
-    "comment": "",
-    "startPos": {
-      "x": 0.59,
-      "y": 0.473
-    },
-    "speedRatioX": 1,
-    "speedRatioY": 1
-  },
-  "keyMapNodes": [
+  "name": "df",
+  "switch_key": "ctrl",
+  "bindings": [
     {
-      "comment": "",
-      "type": "KMT_CLICK",
-      "pos": {
-        "x": 0.9452,
-        "y": 0.1395
+      "type": "aim",
+      "nx": 0.6202325581395348,
+      "ny": 0.4691240310077519,
+      "key": "",
+      "label": "",
+      "hold": true,
+      "keys": {},
+      "radius": 0.28,
+      "sensitivity": 0.9999999999999997,
+      "action": "hold",
+      "clicks": [],
+      "start_nx": 0.0,
+      "start_ny": 0.0,
+      "end_nx": 0.0,
+      "end_ny": 0.0,
+      "drag_speed": 1.0,
+      "start_delay": 0,
+      "offsets": {}
+    },
+    {
+      "type": "tap",
+      "nx": 0.9452,
+      "ny": 0.1395,
+      "key": "mouse_left",
+      "label": "",
+      "hold": true,
+      "keys": {},
+      "radius": 0.1,
+      "sensitivity": 1.0,
+      "action": "hold",
+      "clicks": [],
+      "start_nx": 0.0,
+      "start_ny": 0.0,
+      "end_nx": 0.0,
+      "end_ny": 0.0,
+      "drag_speed": 1.0,
+      "start_delay": 0,
+      "offsets": {}
+    },
+    {
+      "type": "tap",
+      "nx": 0.951767441860465,
+      "ny": 0.49446795865633075,
+      "key": "mouse_right",
+      "label": "",
+      "hold": true,
+      "keys": {},
+      "radius": 0.1,
+      "sensitivity": 1.0,
+      "action": "hold",
+      "clicks": [],
+      "start_nx": 0.0,
+      "start_ny": 0.0,
+      "end_nx": 0.0,
+      "end_ny": 0.0,
+      "drag_speed": 1.0,
+      "start_delay": 0,
+      "offsets": {}
+    },
+    {
+      "type": "tap",
+      "nx": 0.9494093023255814,
+      "ny": 0.6946,
+      "key": "space",
+      "label": "",
+      "hold": true,
+      "keys": {},
+      "radius": 0.1,
+      "sensitivity": 1.0,
+      "action": "hold",
+      "clicks": [],
+      "start_nx": 0.0,
+      "start_ny": 0.0,
+      "end_nx": 0.0,
+      "end_ny": 0.0,
+      "drag_speed": 1.0,
+      "start_delay": 0,
+      "offsets": {}
+    },
+    {
+      "type": "tap",
+      "nx": 0.9469604651162791,
+      "ny": 0.9007320413436692,
+      "key": "z",
+      "label": "",
+      "hold": true,
+      "keys": {},
+      "radius": 0.1,
+      "sensitivity": 1.0,
+      "action": "hold",
+      "clicks": [],
+      "start_nx": 0.0,
+      "start_ny": 0.0,
+      "end_nx": 0.0,
+      "end_ny": 0.0,
+      "drag_speed": 1.0,
+      "start_delay": 0,
+      "offsets": {}
+    },
+    {
+      "type": "tap",
+      "nx": 0.8594837209302326,
+      "ny": 0.9061759689922481,
+      "key": "c",
+      "label": "",
+      "hold": true,
+      "keys": {},
+      "radius": 0.1,
+      "sensitivity": 1.0,
+      "action": "hold",
+      "clicks": [],
+      "start_nx": 0.0,
+      "start_ny": 0.0,
+      "end_nx": 0.0,
+      "end_ny": 0.0,
+      "drag_speed": 1.0,
+      "start_delay": 0,
+      "offsets": {}
+    },
+    {
+      "type": "tap",
+      "nx": 0.7926906976744186,
+      "ny": 0.9266839793281655,
+      "key": "r",
+      "label": "",
+      "hold": true,
+      "keys": {},
+      "radius": 0.1,
+      "sensitivity": 1.0,
+      "action": "hold",
+      "clicks": [],
+      "start_nx": 0.0,
+      "start_ny": 0.0,
+      "end_nx": 0.0,
+      "end_ny": 0.0,
+      "drag_speed": 1.0,
+      "start_delay": 0,
+      "offsets": {}
+    },
+    {
+      "type": "tap",
+      "nx": 0.896446511627907,
+      "ny": 0.3546400516795865,
+      "key": "5",
+      "label": "",
+      "hold": true,
+      "keys": {},
+      "radius": 0.1,
+      "sensitivity": 1.0,
+      "action": "hold",
+      "clicks": [],
+      "start_nx": 0.0,
+      "start_ny": 0.0,
+      "end_nx": 0.0,
+      "end_ny": 0.0,
+      "drag_speed": 1.0,
+      "start_delay": 0,
+      "offsets": {}
+    },
+    {
+      "type": "tap",
+      "nx": 0.9506720930232558,
+      "ny": 0.3526160206718347,
+      "key": "f3",
+      "label": "",
+      "hold": true,
+      "keys": {},
+      "radius": 0.1,
+      "sensitivity": 1.0,
+      "action": "hold",
+      "clicks": [],
+      "start_nx": 0.0,
+      "start_ny": 0.0,
+      "end_nx": 0.0,
+      "end_ny": 0.0,
+      "drag_speed": 1.0,
+      "start_delay": 0,
+      "offsets": {}
+    },
+    {
+      "type": "tap",
+      "nx": 0.8507906976744185,
+      "ny": 0.3526640826873385,
+      "key": "alt",
+      "label": "",
+      "hold": true,
+      "keys": {},
+      "radius": 0.1,
+      "sensitivity": 1.0,
+      "action": "hold",
+      "clicks": [],
+      "start_nx": 0.0,
+      "start_ny": 0.0,
+      "end_nx": 0.0,
+      "end_ny": 0.0,
+      "drag_speed": 1.0,
+      "start_delay": 0,
+      "offsets": {}
+    },
+    {
+      "type": "tap",
+      "nx": 0.7535860465116279,
+      "ny": 0.2572,
+      "key": "t",
+      "label": "",
+      "hold": true,
+      "keys": {},
+      "radius": 0.1,
+      "sensitivity": 1.0,
+      "action": "hold",
+      "clicks": [],
+      "start_nx": 0.0,
+      "start_ny": 0.0,
+      "end_nx": 0.0,
+      "end_ny": 0.0,
+      "drag_speed": 1.0,
+      "start_delay": 0,
+      "offsets": {}
+    },
+    {
+      "type": "tap",
+      "nx": 0.7533790697674418,
+      "ny": 0.3554359173126615,
+      "key": "f",
+      "label": "",
+      "hold": true,
+      "keys": {},
+      "radius": 0.1,
+      "sensitivity": 1.0,
+      "action": "hold",
+      "clicks": [],
+      "start_nx": 0.0,
+      "start_ny": 0.0,
+      "end_nx": 0.0,
+      "end_ny": 0.0,
+      "drag_speed": 1.0,
+      "start_delay": 0,
+      "offsets": {}
+    },
+    {
+      "type": "tap",
+      "nx": 0.6994,
+      "ny": 0.5623,
+      "key": "h",
+      "label": "",
+      "hold": true,
+      "keys": {},
+      "radius": 0.1,
+      "sensitivity": 1.0,
+      "action": "hold",
+      "clicks": [],
+      "start_nx": 0.0,
+      "start_ny": 0.0,
+      "end_nx": 0.0,
+      "end_ny": 0.0,
+      "drag_speed": 1.0,
+      "start_delay": 0,
+      "offsets": {}
+    },
+    {
+      "type": "tap",
+      "nx": 0.3477116279069768,
+      "ny": 0.7338558139534884,
+      "key": "x",
+      "label": "",
+      "hold": true,
+      "keys": {},
+      "radius": 0.1,
+      "sensitivity": 1.0,
+      "action": "hold",
+      "clicks": [],
+      "start_nx": 0.0,
+      "start_ny": 0.0,
+      "end_nx": 0.0,
+      "end_ny": 0.0,
+      "drag_speed": 1.0,
+      "start_delay": 0,
+      "offsets": {}
+    },
+    {
+      "type": "tap",
+      "nx": 0.6458395348837209,
+      "ny": 0.9178279069767442,
+      "key": "g",
+      "label": "",
+      "hold": true,
+      "keys": {},
+      "radius": 0.1,
+      "sensitivity": 1.0,
+      "action": "hold",
+      "clicks": [],
+      "start_nx": 0.0,
+      "start_ny": 0.0,
+      "end_nx": 0.0,
+      "end_ny": 0.0,
+      "drag_speed": 1.0,
+      "start_delay": 0,
+      "offsets": {}
+    },
+    {
+      "type": "tap",
+      "nx": 0.34820697674418605,
+      "ny": 0.9084720930232558,
+      "key": "4",
+      "label": "",
+      "hold": true,
+      "keys": {},
+      "radius": 0.1,
+      "sensitivity": 1.0,
+      "action": "hold",
+      "clicks": [],
+      "start_nx": 0.0,
+      "start_ny": 0.0,
+      "end_nx": 0.0,
+      "end_ny": 0.0,
+      "drag_speed": 1.0,
+      "start_delay": 0,
+      "offsets": {}
+    },
+    {
+      "type": "tap",
+      "nx": 0.4464,
+      "ny": 0.9201,
+      "key": "1",
+      "label": "",
+      "hold": true,
+      "keys": {},
+      "radius": 0.1,
+      "sensitivity": 1.0,
+      "action": "hold",
+      "clicks": [],
+      "start_nx": 0.0,
+      "start_ny": 0.0,
+      "end_nx": 0.0,
+      "end_ny": 0.0,
+      "drag_speed": 1.0,
+      "start_delay": 0,
+      "offsets": {}
+    },
+    {
+      "type": "tap",
+      "nx": 0.5384,
+      "ny": 0.9182,
+      "key": "2",
+      "label": "",
+      "hold": true,
+      "keys": {},
+      "radius": 0.1,
+      "sensitivity": 1.0,
+      "action": "hold",
+      "clicks": [],
+      "start_nx": 0.0,
+      "start_ny": 0.0,
+      "end_nx": 0.0,
+      "end_ny": 0.0,
+      "drag_speed": 1.0,
+      "start_delay": 0,
+      "offsets": {}
+    },
+    {
+      "type": "tap",
+      "nx": 0.5912,
+      "ny": 0.9181,
+      "key": "3",
+      "label": "",
+      "hold": true,
+      "keys": {},
+      "radius": 0.1,
+      "sensitivity": 1.0,
+      "action": "hold",
+      "clicks": [],
+      "start_nx": 0.0,
+      "start_ny": 0.0,
+      "end_nx": 0.0,
+      "end_ny": 0.0,
+      "drag_speed": 1.0,
+      "start_delay": 0,
+      "offsets": {}
+    },
+    {
+      "type": "tap",
+      "nx": 0.5831,
+      "ny": 0.7265,
+      "key": "esc",
+      "label": "",
+      "hold": true,
+      "keys": {},
+      "radius": 0.1,
+      "sensitivity": 1.0,
+      "action": "hold",
+      "clicks": [],
+      "start_nx": 0.0,
+      "start_ny": 0.0,
+      "end_nx": 0.0,
+      "end_ny": 0.0,
+      "drag_speed": 1.0,
+      "start_delay": 0,
+      "offsets": {}
+    },
+    {
+      "type": "tap",
+      "nx": 0.12130232558139535,
+      "ny": 0.19034392764857883,
+      "key": "m",
+      "label": "",
+      "hold": true,
+      "keys": {},
+      "radius": 0.1,
+      "sensitivity": 1.0,
+      "action": "hold",
+      "clicks": [],
+      "start_nx": 0.0,
+      "start_ny": 0.0,
+      "end_nx": 0.0,
+      "end_ny": 0.0,
+      "drag_speed": 1.0,
+      "start_delay": 0,
+      "offsets": {}
+    },
+    {
+      "type": "tap",
+      "nx": 0.08962790697674419,
+      "ny": 0.42809198966408274,
+      "key": "q",
+      "label": "",
+      "hold": true,
+      "keys": {},
+      "radius": 0.1,
+      "sensitivity": 1.0,
+      "action": "hold",
+      "clicks": [],
+      "start_nx": 0.0,
+      "start_ny": 0.0,
+      "end_nx": 0.0,
+      "end_ny": 0.0,
+      "drag_speed": 1.0,
+      "start_delay": 0,
+      "offsets": {}
+    },
+    {
+      "type": "tap",
+      "nx": 0.20137209302325582,
+      "ny": 0.4288,
+      "key": "e",
+      "label": "",
+      "hold": true,
+      "keys": {},
+      "radius": 0.1,
+      "sensitivity": 1.0,
+      "action": "hold",
+      "clicks": [],
+      "start_nx": 0.0,
+      "start_ny": 0.0,
+      "end_nx": 0.0,
+      "end_ny": 0.0,
+      "drag_speed": 1.0,
+      "start_delay": 0,
+      "offsets": {}
+    },
+    {
+      "type": "joystick",
+      "nx": 0.14709069767441862,
+      "ny": 0.7717400516795865,
+      "key": "",
+      "label": "",
+      "hold": true,
+      "keys": {
+        "up": "w",
+        "down": "s",
+        "left": "a",
+        "right": "d"
       },
-      "key": "LeftButton",
-      "switchMap": false
+      "radius": 0.14181,
+      "sensitivity": 1.0,
+      "action": "hold",
+      "clicks": [],
+      "start_nx": 0.0,
+      "start_ny": 0.0,
+      "end_nx": 0.0,
+      "end_ny": 0.0,
+      "drag_speed": 1.0,
+      "start_delay": 0,
+      "offsets": {
+        "left": 0.07064,
+        "right": 0.06351,
+        "up": 0.13129,
+        "down": 0.14181
+      }
     },
     {
-      "comment": "",
-      "type": "KMT_CLICK",
-      "pos": {
-        "x": 0.957,
-        "y": 0.4893
-      },
-      "key": "RightButton",
-      "switchMap": false
+      "type": "tap",
+      "nx": 0.0362906976744186,
+      "ny": 0.9417279069767441,
+      "key": "tab",
+      "label": "",
+      "hold": true,
+      "keys": {},
+      "radius": 0.1,
+      "sensitivity": 1.0,
+      "action": "hold",
+      "clicks": [],
+      "start_nx": 0.0,
+      "start_ny": 0.0,
+      "end_nx": 0.0,
+      "end_ny": 0.0,
+      "drag_speed": 1.0,
+      "start_delay": 0,
+      "offsets": {}
     },
     {
-      "comment": "",
-      "type": "KMT_CLICK",
-      "pos": {
-        "x": 0.9622,
-        "y": 0.6946
-      },
-      "key": "Key_Space",
-      "switchMap": false
+      "type": "tap",
+      "nx": 0.774253488372093,
+      "ny": 0.17605607235142115,
+      "key": "b",
+      "label": "",
+      "hold": true,
+      "keys": {},
+      "radius": 0.1,
+      "sensitivity": 1.0,
+      "action": "hold",
+      "clicks": [],
+      "start_nx": 0.0,
+      "start_ny": 0.0,
+      "end_nx": 0.0,
+      "end_ny": 0.0,
+      "drag_speed": 1.0,
+      "start_delay": 0,
+      "offsets": {}
     },
     {
-      "comment": "",
-      "type": "KMT_CLICK",
-      "pos": {
-        "x": 0.9551,
-        "y": 0.9059
-      },
-      "key": "Key_Z",
-      "switchMap": false
+      "type": "tap",
+      "nx": 0.5501,
+      "ny": 0.8503,
+      "key": "v",
+      "label": "",
+      "hold": true,
+      "keys": {},
+      "radius": 0.1,
+      "sensitivity": 1.0,
+      "action": "hold",
+      "clicks": [],
+      "start_nx": 0.0,
+      "start_ny": 0.0,
+      "end_nx": 0.0,
+      "end_ny": 0.0,
+      "drag_speed": 1.0,
+      "start_delay": 0,
+      "offsets": {}
     },
     {
-      "comment": "",
-      "type": "KMT_CLICK",
-      "pos": {
-        "x": 0.8746,
-        "y": 0.9023
-      },
-      "key": "Key_C",
-      "switchMap": false
-    },
-    {
-      "comment": "",
-      "type": "KMT_CLICK",
-      "pos": {
-        "x": 0.8049,
-        "y": 0.9241
-      },
-      "key": "Key_R",
-      "switchMap": false
-    },
-    {
-      "comment": "",
-      "type": "KMT_CLICK",
-      "pos": {
-        "x": 0.9104,
-        "y": 0.3611
-      },
-      "key": "Key_5",
-      "switchMap": false
-    },
-    {
-      "comment": "",
-      "type": "KMT_CLICK",
-      "pos": {
-        "x": 0.9623,
-        "y": 0.3552
-      },
-      "key": "Key_F3",
-      "switchMap": false
-    },
-    {
-      "comment": "",
-      "type": "KMT_CLICK",
-      "pos": {
-        "x": 0.863,
-        "y": 0.363
-      },
-      "key": "Key_Alt",
-      "switchMap": false
-    },
-    {
-      "comment": "",
-      "type": "KMT_CLICK",
-      "pos": {
-        "x": 0.7594,
-        "y": 0.2572
-      },
-      "key": "Key_T",
-      "switchMap": false
-    },
-    {
-      "comment": "",
-      "type": "KMT_CLICK",
-      "pos": {
-        "x": 0.7621,
-        "y": 0.3451
-      },
-      "key": "Key_F",
-      "switchMap": false
-    },
-    {
-      "comment": "",
-      "type": "KMT_CLICK",
-      "pos": {
-        "x": 0.6994,
-        "y": 0.5623
-      },
-      "key": "Key_H",
-      "switchMap": false
-    },
-    {
-      "comment": "",
-      "type": "KMT_CLICK",
-      "pos": {
-        "x": 0.6762,
-        "y": 0.7106
-      },
-      "key": "Key_X",
-      "switchMap": false
-    },
-    {
-      "comment": "",
-      "type": "KMT_CLICK",
-      "pos": {
-        "x": 0.6377,
-        "y": 0.9062
-      },
-      "key": "Key_G",
-      "switchMap": false
-    },
-    {
-      "comment": "",
-      "type": "KMT_CLICK",
-      "pos": {
-        "x": 0.3453,
-        "y": 0.9201
-      },
-      "key": "Key_4",
-      "switchMap": false
-    },
-    {
-      "comment": "",
-      "type": "KMT_CLICK",
-      "pos": {
-        "x": 0.4464,
-        "y": 0.9201
-      },
-      "key": "Key_1",
-      "switchMap": false
-    },
-    {
-      "comment": "",
-      "type": "KMT_CLICK",
-      "pos": {
-        "x": 0.5384,
-        "y": 0.9182
-      },
-      "key": "Key_2",
-      "switchMap": false
-    },
-    {
-      "comment": "",
-      "type": "KMT_CLICK",
-      "pos": {
-        "x": 0.5912,
-        "y": 0.9181
-      },
-      "key": "Key_3",
-      "switchMap": false
-    },
-    {
-      "comment": "",
-      "type": "KMT_CLICK",
-      "pos": {
-        "x": 0.5831,
-        "y": 0.7265
-      },
-      "key": "Key_Escape",
-      "switchMap": false
-    },
-    {
-      "comment": "",
-      "type": "KMT_CLICK",
-      "pos": {
-        "x": 0.112,
-        "y": 0.1813
-      },
-      "key": "Key_M",
-      "switchMap": false
-    },
-    {
-      "comment": "",
-      "type": "KMT_CLICK",
-      "pos": {
-        "x": 0.078,
-        "y": 0.4268
-      },
-      "key": "Key_Q",
-      "switchMap": false
-    },
-    {
-      "comment": "",
-      "type": "KMT_CLICK",
-      "pos": {
-        "x": 0.188,
-        "y": 0.4288
-      },
-      "key": "Key_E",
-      "switchMap": false
-    },
-    {
-      "comment": "",
-      "type": "KMT_STEER_WHEEL",
-      "centerPos": {
-        "x": 0.1343,
-        "y": 0.7782
-      },
-      "leftOffset": 0.07064,
-      "rightOffset": 0.06351,
-      "upOffset": 0.13129,
-      "downOffset": 0.14181,
-      "leftKey": "Key_A",
-      "rightKey": "Key_D",
-      "upKey": "Key_W",
-      "downKey": "Key_S",
-      "switchMap": false
-    },
-    {
-      "comment": "",
-      "type": "KMT_CLICK",
-      "pos": {
-        "x": 0.0235,
-        "y": 0.9301
-      },
-      "key": "Key_Tab",
-      "switchMap": false
-    },
-    {
-      "comment": "",
-      "type": "KMT_CLICK",
-      "pos": {
-        "x": 0.7853,
-        "y": 0.1851
-      },
-      "key": "Key_B",
-      "switchMap": false
-    },
-    {
-      "comment": "",
-      "type": "KMT_CLICK_MULTI",
-      "key": "Key_Shift",
-      "clickNodes": [
-        {
-          "delay": 50,
-          "pos": {
-            "x": 0.889,
-            "y": 0.2032
-          },
-          "order": 1
-        },
-        {
-          "delay": 50,
-          "pos": {
-            "x": 0.8913,
-            "y": 0.2154
-          },
-          "order": 2
-        },
-        {
-          "delay": 50,
-          "pos": {
-            "x": 0.8904,
-            "y": 0.2154
-          },
-          "order": 3
-        },
-        {
-          "delay": 50,
-          "pos": {
-            "x": 0.8869,
-            "y": 0.2035
-          },
-          "order": 4
-        },
-        {
-          "delay": 50,
-          "pos": {
-            "x": 0.8832,
-            "y": 0.2056
-          },
-          "order": 5
-        },
-        {
-          "delay": 50,
-          "pos": {
-            "x": 0.8895,
-            "y": 0.2055
-          },
-          "order": 6
-        },
-        {
-          "delay": 50,
-          "pos": {
-            "x": 0.8931,
-            "y": 0.2076
-          },
-          "order": 7
-        },
-        {
-          "delay": 50,
-          "pos": {
-            "x": 0.8912,
-            "y": 0.1937
-          },
-          "order": 8
-        },
-        {
-          "delay": 50,
-          "pos": {
-            "x": 0.8878,
-            "y": 0.2057
-          },
-          "order": 9
-        },
-        {
-          "delay": 50,
-          "pos": {
-            "x": 0.8922,
-            "y": 0.2115
-          },
-          "order": 10
-        },
-        {
-          "delay": 50,
-          "pos": {
-            "x": 0.8877,
-            "y": 0.2155
-          },
-          "order": 11
-        },
-        {
-          "delay": 50,
-          "pos": {
-            "x": 0.8886,
-            "y": 0.2015
-          },
-          "order": 12
-        },
-        {
-          "delay": 50,
-          "pos": {
-            "x": 0.8905,
-            "y": 0.2075
-          },
-          "order": 13
-        },
-        {
-          "delay": 50,
-          "pos": {
-            "x": 0.886,
-            "y": 0.2055
-          },
-          "order": 14
-        },
-        {
-          "delay": 50,
-          "pos": {
-            "x": 0.8877,
-            "y": 0.2055
-          },
-          "order": 15
-        }
-      ],
-      "switchMap": false
-    },
-    {
-      "comment": "",
-      "type": "KMT_CLICK",
-      "pos": {
-        "x": 0.5501,
-        "y": 0.8503
-      },
-      "key": "Key_V",
-      "switchMap": false
+      "type": "tap",
+      "nx": 0.8767,
+      "ny": 0.2106,
+      "key": "shift",
+      "label": "",
+      "hold": true,
+      "keys": {},
+      "radius": 0.1,
+      "sensitivity": 1.0,
+      "action": "hold",
+      "clicks": [],
+      "start_nx": 0.0,
+      "start_ny": 0.0,
+      "end_nx": 0.0,
+      "end_ny": 0.0,
+      "drag_speed": 1.0,
+      "start_delay": 0,
+      "offsets": {}
     }
-  ],
-  "width": 1118.4000244140625,
-  "height": 597.5999755859375
+  ]
 }

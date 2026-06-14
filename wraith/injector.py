@@ -35,7 +35,27 @@ JOY_PID = 2
 TAP_PID_BASE = 10
 
 AIM_TICK = 1 / 120          # aim engine / scheduler resolution
-AIM_MARGIN = 0.12           # fraction of screen kept as travel headroom each side
+
+# Look-finger CLEAN ZONE — the central-right "black box" with no buttons in it:
+# the WASD stick is off to the left, fire/ADS/scope sit on the far right, the
+# stats panel is up top and the weapon bar along the bottom. The look finger
+# only ever lives, travels and re-anchors INSIDE this box, so a re-press can
+# never land on a button or steal the movement stick. Fractions of the
+# landscape screen — nudge these if a re-anchor still clips a control.
+LOOK_X0, LOOK_X1 = 0.55, 0.80    # left / right edges of the zone
+LOOK_Y0, LOOK_Y1 = 0.22, 0.74    # top / bottom edges of the zone
+# Vertical "home" — just inside the TOP edge. Looking DOWN (recoil) re-anchors
+# here, so a spray has the WHOLE lower box to pull into and almost never
+# re-anchors mid-spray = no recoil flick. (Looking UP wraps to the bottom
+# instead, so you can still crane up freely.) X home is just the box centre.
+LOOK_ANCHOR_X = 0.5 * (LOOK_X0 + LOOK_X1)
+LOOK_ANCHOR_Y = LOOK_Y0 + 0.05
+# How far the look finger may DRAG before it must re-anchor — almost the whole
+# screen (it can leave the box once it's down). Big travel = rare re-anchors =
+# the flick essentially never shows during normal play. Just off the edges so a
+# turnaround doesn't trip an edge gesture / pull the notification shade.
+TRAVEL_MX, TRAVEL_MY = 0.03, 0.06
+
 TAP_HOLD = 0.035            # quick-tap finger-down duration (s)
 
 
@@ -76,15 +96,26 @@ class Injector:
         self._joy_keys: set[str] = set()
         self._joy_down = False
 
-        # aim — QtScrcpy keeps the look finger planted and only re-anchors at
-        # the screen margins, giving long, smooth, continuous turns.
+        # aim — the look finger DRAGS across almost the whole screen (DF keeps it
+        # as "look" once it has touched down in the clean box), so strokes are
+        # long and re-anchors are RARE: normal looking and recoil never reach a
+        # screen edge, so they never re-anchor and never flick. The keymap's aim
+        # sensitivity is honoured; its on-screen position is unused.
         self.aim = self.km.aim_binding()
         if self.aim:
-            self.aim_cx, self.aim_cy = control.norm_to_px(self.aim.nx, self.aim.ny)
             self.aim_sens = self.aim.sensitivity or 1.0
-        mx, my = int(AIM_MARGIN * W), int(AIM_MARGIN * H)
-        self._aim_left, self._aim_right = mx, W - mx
-        self._aim_top, self._aim_bot = my, H - my
+        # TRAVEL bounds — almost the full screen, just off the edges so the
+        # drag's turnaround never trips an edge gesture / the notification pull.
+        self._trav_left, self._trav_right = int(TRAVEL_MX * W), int((1 - TRAVEL_MX) * W)
+        self._trav_top, self._trav_bot = int(TRAVEL_MY * H), int((1 - TRAVEL_MY) * H)
+        # BOX — the only place the finger may touch DOWN (re-press), so a new
+        # contact never lands on a button or the WASD stick.
+        self._box_left, self._box_right = int(LOOK_X0 * W), int(LOOK_X1 * W)
+        self._box_top, self._box_bot = int(LOOK_Y0 * H), int(LOOK_Y1 * H)
+        self._anchor_x = int(LOOK_ANCHOR_X * W)   # first-press / recoil home
+        self._anchor_y = int(LOOK_ANCHOR_Y * H)
+        if self.joy:                              # keep re-press clear of the stick
+            self._box_left = max(self._box_left, self.joy_cx + self.joy_r)
         self._aim_down = False
         self._aim_pid = AIM_PID         # look-finger pointer id (single, like QtScrcpy)
         self._aim_x = 0
@@ -140,14 +171,27 @@ class Injector:
 
     # -- worker ---------------------------------------------------------------
     def _loop(self) -> None:
+        # Drain input as fast as it arrives, but only ADVANCE the aim (send a
+        # phone touch) at a fixed cadence. A gaming mouse fires up to ~1000
+        # events/sec; sending a touch_move for each one floods the scrcpy control
+        # socket during a continuous turn and the camera goes choppy/jumpy. So we
+        # COALESCE: keys/taps fire immediately (low latency), mouse deltas just
+        # accumulate, and one combined look move is pushed per AIM_TICK (~120Hz).
+        next_tick = time.monotonic()
         while self._run:
-            try:
-                ev = self.q.get(timeout=AIM_TICK)
-                self._handle(ev)
-            except queue.Empty:
-                pass
-            self._aim_tick()
+            now = time.monotonic()
+            timeout = next_tick - now
+            if timeout > 0:
+                try:
+                    self._handle(self.q.get(timeout=timeout))
+                    continue                      # keep draining until tick is due
+                except queue.Empty:
+                    pass
+            self._aim_tick()                      # one coalesced look move
             self._run_due()
+            next_tick += AIM_TICK
+            if next_tick < now:                   # fell behind -> don't burst
+                next_tick = now + AIM_TICK
 
     def _handle(self, ev: tuple) -> None:
         kind = ev[0]
@@ -283,31 +327,49 @@ class Injector:
         self._aim_pending[1] = 0.0
 
         if not self._aim_down:
-            self._aim_x, self._aim_y = self.aim_cx, self.aim_cy
+            self._aim_x, self._aim_y = self._anchor_x, self._anchor_y
             self.c.touch_down(self._aim_pid, self._aim_x, self._aim_y)
             self._aim_down = True
 
         self._aim_x += dx * self.aim_sens
         self._aim_y += dy * self.aim_sens
 
-        # Re-anchor at the screen margins for infinite mouse travel. This MUST
-        # match QtScrcpy, which is flick-free on DF: slide to the edge, lift, and
-        # re-press at the anchor ATOMICALLY in this same tick. The old code left
-        # the finger UP until the next motion tick — an ~8ms gap where the look
-        # gesture was broken mid-turn; during recoil DF saw the finger vanish and
-        # reappear at the anchor and read that as a recenter JUMP = the flick.
-        # Re-pressing now (finger never idle mid-turn) removes the gap. The
-        # camera does NOT move this tick; the next motion continues from the
-        # anchor, so within-bounds sensitivity is unchanged.
-        if not (self._aim_left < self._aim_x < self._aim_right and
-                self._aim_top < self._aim_y < self._aim_bot):
-            cx = int(min(max(self._aim_x, self._aim_left), self._aim_right))
-            cy = int(min(max(self._aim_y, self._aim_top), self._aim_bot))
-            self.c.touch_move(self._aim_pid, cx, cy)   # finish travel to the edge
-            self.c.touch_up(self._aim_pid, cx, cy)     # lift
-            self._aim_x, self._aim_y = self.aim_cx, self.aim_cy
-            self.c.touch_down(self._aim_pid, self._aim_x, self._aim_y)  # re-press NOW
+        # The finger drags across the whole SCREEN and only re-anchors when it
+        # runs out of screen — so normal looking and recoil (which never reach a
+        # screen edge) never re-anchor and never flick. When it does re-anchor on
+        # a big continuous spin, the re-press lands back inside the clean BOX:
+        #   X -> opposite side of the box in the turn direction (max room to keep
+        #        sweeping that way).
+        #   Y -> looking DOWN re-presses at HOME near the box top (full lower
+        #        screen to spray into); looking UP re-presses at the box bottom.
+        # An axis that didn't run out keeps its position (clamped into the box so
+        # the touch-DOWN is always safe). Overshoot carries through so the spin
+        # never loses a frame.
+        out_x = not (self._trav_left < self._aim_x < self._trav_right)
+        out_y = not (self._trav_top < self._aim_y < self._trav_bot)
+        if out_x or out_y:
+            ex = min(max(self._aim_x, self._trav_left), self._trav_right)
+            ey = min(max(self._aim_y, self._trav_top), self._trav_bot)
+            over_x = self._aim_x - ex                  # motion past the edge this tick
+            over_y = self._aim_y - ey
+            self.c.touch_move(self._aim_pid, int(ex), int(ey))  # finish to the edge
+            self.c.touch_up(self._aim_pid, int(ex), int(ey))    # lift
+            if out_x:                                  # re-press toward the turn dir
+                nx = self._box_right if self._aim_x <= self._trav_left else self._box_left
+            else:                                      # keep X, but inside the box
+                nx = min(max(ex, self._box_left), self._box_right)
+            if not out_y:                              # keep Y, but inside the box
+                ny = min(max(ey, self._box_top), self._box_bot)
+            elif self._aim_y <= self._trav_top:        # looking UP -> box bottom
+                ny = self._box_bot
+            else:                                      # looking DOWN (recoil) -> home
+                ny = self._anchor_y
+            self.c.touch_down(self._aim_pid, int(nx), int(ny))  # re-press in the box
             # _aim_down stays True — the look finger is never idle between strokes.
+            self._aim_x = min(max(nx + over_x, self._trav_left), self._trav_right)
+            self._aim_y = min(max(ny + over_y, self._trav_top), self._trav_bot)
+            if int(self._aim_x) != int(nx) or int(self._aim_y) != int(ny):
+                self.c.touch_move(self._aim_pid, int(self._aim_x), int(self._aim_y))
         else:
             self.c.touch_move(self._aim_pid, int(self._aim_x), int(self._aim_y))
 

@@ -929,6 +929,16 @@ def run_window(serial: str | None = None, keymap_name: str = "df.json",
     desk_w, desk_h = info.current_w, info.current_h
     screen = None
 
+    def make_display(size, flags=pygame.RESIZABLE):
+        """Create the display requesting VSYNC, so every present locks to the
+        monitor's refresh = even frame pacing (no microjudder from the phone's
+        slightly jittery frame arrival). DOUBLEBUF is needed for vsync to engage;
+        fall back to a plain window if the driver won't give us a vsync surface."""
+        try:
+            return pygame.display.set_mode(size, flags | pygame.DOUBLEBUF, vsync=1)
+        except pygame.error:
+            return pygame.display.set_mode(size, flags)
+
     def fit_window(vw, vh, extra_w=0):
         """Size the window to the video aspect, capped to fit the screen, and
         re-center it. Called on first frame AND on orientation flips.
@@ -938,7 +948,7 @@ def run_window(serial: str | None = None, keymap_name: str = "df.json",
         scale = min(desk_w * 0.85 / vw, (desk_h - 80) * 0.92 / vh, 1.0)
         win = (max(240, int(vw * scale)) + extra_w, max(240, int(vh * scale)))
         os.environ["SDL_VIDEO_CENTERED"] = "1"   # center on (re)create
-        screen = pygame.display.set_mode(win, pygame.RESIZABLE)
+        screen = make_display(win)
         return win
 
     def video_dest(area_w, area_h, vw, vh):
@@ -1111,11 +1121,9 @@ def run_window(serial: str | None = None, keymap_name: str = "df.json",
                     get_frame=lambda: last_arr,
                     on_apply=apply_keymap)
             rebuild_injector(cur_w, cur_h)     # releases any held touches
-            screen = pygame.display.set_mode((w + KeymapEditor.SIDEBAR_W, h),
-                                             pygame.RESIZABLE)
+            screen = make_display((w + KeymapEditor.SIDEBAR_W, h))
         else:
-            screen = pygame.display.set_mode((max(240, w - KeymapEditor.SIDEBAR_W), h),
-                                             pygame.RESIZABLE)
+            screen = make_display((max(240, w - KeymapEditor.SIDEBAR_W), h))
             apply_keymap()                     # edits go live the moment you play
         update_caption()
 
@@ -1133,7 +1141,7 @@ def run_window(serial: str | None = None, keymap_name: str = "df.json",
             if ev.type == pygame.QUIT:
                 running = False
             elif ev.type == pygame.VIDEORESIZE:
-                screen = pygame.display.set_mode(ev.size, pygame.RESIZABLE)
+                screen = make_display(ev.size)
             elif ev.type == getattr(pygame, "WINDOWRESTORED", -1):
                 # un-maximize / un-minimize -> snap the window back to the phone's
                 # aspect. A maximized (wide) window leaves a portrait phone
