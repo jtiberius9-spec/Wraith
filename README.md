@@ -109,6 +109,8 @@ Edit keymaps live with **F10** once you're in.
 | `wraith/updater.py`  | auto-update check + installer download |
 
 ## Status
-**v0.4.2** — shipping. Integrated client (video + input + audio + recording in one
+**v0.4.3** — shipping. Integrated client (video + input + audio + recording in one
 window), in-window F10 editor, flick-free full-screen aim, and a self-contained
-signed Windows installer with bundled adb / scrcpy-server / ffmpeg.
+signed Windows installer with bundled adb / scrcpy-server / ffmpeg. v0.4.3 fixes
+a crash/freeze on screen rotation (portrait↔landscape now follows the game
+cleanly) by rendering the window on OpenGL, separate from the decoder's GPU.

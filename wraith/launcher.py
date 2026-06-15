@@ -455,6 +455,12 @@ class Launcher:
             args.append("--screen-off")
         if not self.opt["show_toolbar"].get():
             args.append("--no-toolbar")
+        ori = self.lockori_var.get()
+        if ori and ori != "no lock":
+            # '@' = LOCK the capture to this angle so a device rotation can't
+            # reconfigure the encoder mid-stream and drop the session. For
+            # landscape FPS use 90 (or 270 if it comes up upside-down).
+            args += ["--capture-orientation", f"@{ori}"]
         try:
             self.procs.append(subprocess.Popen(args, cwd=str(KEYMAPS_DIR.parent),
                                                creationflags=CREATIONFLAGS))

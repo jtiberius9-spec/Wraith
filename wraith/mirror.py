@@ -40,7 +40,7 @@ from .control import (_adb_base, find_server_jar, detect_scrcpy_version, _run,
                       ScrcpyControl)
 from .injector import Injector
 from .keymap import Keymap
-from .runtime import keymaps_dir, ffmpeg_path, NO_WINDOW
+from .runtime import keymaps_dir, ffmpeg_path, NO_WINDOW, app_dir
 
 KEYMAPS_DIR = keymaps_dir()
 
@@ -86,7 +86,7 @@ class VideoStream:
     def __init__(self, serial: str | None, *, scid: str = "1234abcd",
                  port: int = 27300, max_size: int = 1920, max_fps: int = 60,
                  bitrate: int = 20_000_000, audio: bool = True,
-                 codec: str = "h265"):
+                 codec: str = "h265", capture_orientation: str | None = None):
         assert int(scid, 16) <= 0x7FFFFFFF, "scid must be <= 0x7fffffff (server parses signed)"
         self.serial = serial
         self.scid = scid
@@ -95,6 +95,13 @@ class VideoStream:
         self.max_fps = max_fps
         self.bitrate = bitrate
         self.audio = audio
+        # LOCKED capture orientation, e.g. "@90". The '@' tells scrcpy to LOCK the
+        # captured video to that angle so it no longer follows the device — the
+        # encoder dimensions then stay fixed for the whole session. Without this a
+        # portrait->landscape flip forces the server to reconfigure the encoder to
+        # a new resolution mid-stream, which drops the connection (you'd have to
+        # restart the server). None = follow device rotation (legacy behaviour).
+        self.capture_orientation = capture_orientation
         # H.265/HEVC is ~40-50% more efficient than H.264 → far smaller frames in
         # complex/bright scenes (less transfer+decode → less latency), and the SD888
         # encoder + Intel HD620 decoder both do it in hardware. "h264" stays as a
@@ -116,6 +123,12 @@ class VideoStream:
         self._proc: subprocess.Popen | None = None
         self._reader: threading.Thread | None = None
         self._run = False
+        # set True if the server process exits while we were still mirroring —
+        # i.e. it CRASHED (commonly while reconfiguring the encoder on a screen
+        # rotation), as opposed to us closing the session. The render loop reads
+        # this to tell "phone rotated and server died" from "USB unplugged".
+        self.server_died = False
+        self._srvlog_path = None     # where the server's own stdout/stderr is teed
         # render loop sets this while the window is minimized: keep DECODING
         # (so the stream stays at the live edge) but skip the YUV->RGB convert
         # + copy — the most expensive per-frame CPU work nobody can see.
@@ -165,12 +178,24 @@ class VideoStream:
             "send_device_meta=false", "send_codec_meta=false",
             "send_frame_meta=false", "send_dummy_byte=false",
         ]
+        if self.capture_orientation:
+            # locks the encoder to one resolution so a device rotation can't force
+            # a mid-stream reconfigure (= dropped session). See __init__.
+            cmd.append(f"capture_orientation={self.capture_orientation}")
         if self.audio:
             cmd.append("audio_codec=raw")          # raw PCM s16le 48k stereo
-        # NOTE: server stdout -> DEVNULL. Piping it and draining in a thread can
-        # deadlock the server on a blocked stdout write (zero video bytes then).
-        self._proc = subprocess.Popen(cmd, stdout=subprocess.DEVNULL,
-                                      stderr=subprocess.DEVNULL,
+        # Tee the server's own stdout/stderr to a FILE (not a PIPE): a pipe with
+        # no reader can deadlock the server on a blocked write, but a file never
+        # blocks. This keeps the server's crash trace — e.g. the encoder failing
+        # to reconfigure on a screen rotation — instead of throwing it away.
+        try:
+            self._srvlog_path = app_dir() / "wraith-server.log"
+            srvlog = open(self._srvlog_path, "w", buffering=1, errors="replace")
+        except OSError:
+            srvlog, self._srvlog_path = subprocess.DEVNULL, None
+        self._srvlog = srvlog
+        self._proc = subprocess.Popen(cmd, stdout=srvlog,
+                                      stderr=subprocess.STDOUT,
                                       creationflags=NO_WINDOW)
 
         # Server opens connections in a fixed order: video, [audio], control.
@@ -371,6 +396,16 @@ class VideoStream:
                         self.first_frame_evt.set()
         except Exception:
             log.error("reader crashed:\n%s", traceback.format_exc())
+        # Distinguish "the server process died on us" (e.g. it crashed
+        # reconfiguring the encoder on a rotation) from a clean shutdown, so the
+        # render loop / logs can say which. _run is still True here only if we
+        # broke out unexpectedly rather than via close().
+        if self._run:
+            code = self._proc.poll() if self._proc else None
+            self.server_died = code is not None
+            if self.server_died:
+                log.warning("scrcpy server EXITED (code %s) while mirroring — "
+                            "see %s", code, self._srvlog_path)
         log.info("video reader stopped (decoded %d frames, %d bytes)",
                  self.decoded, total_bytes)
 
@@ -414,6 +449,12 @@ class VideoStream:
         self._sock = self.audio_sock = self.ctrl_sock = self._listener = None
         if self._proc and self._proc.poll() is None:
             self._proc.terminate()
+        srv = getattr(self, "_srvlog", None)
+        if hasattr(srv, "close"):
+            try:
+                srv.close()
+            except Exception:
+                pass
         try:
             subprocess.run(_adb_base(self.serial) +
                            ["reverse", "--remove", f"localabstract:scrcpy_{self.scid}"],
@@ -850,7 +891,8 @@ def run_window(serial: str | None = None, keymap_name: str = "df.json",
                bitrate: int = 20_000_000, fps: int = 60, screen_off: bool = False,
                audio: bool = True, gain: float = 1.0, mic: bool = True,
                mic_gain: float = 1.0, show_toolbar: bool = True,
-               save_dir: str | None = None, codec: str = "h265"):
+               save_dir: str | None = None, codec: str = "h265",
+               capture_orientation: str | None = None):
     """M2: live video + in-window input. ONE control channel, no global hooks.
 
     Switch key (from the keymap, default Ctrl) toggles:
@@ -874,7 +916,8 @@ def run_window(serial: str | None = None, keymap_name: str = "df.json",
     switch_key = keymap.switch_key or "ctrl"
 
     stream = VideoStream(serial, max_size=max_size, bitrate=bitrate, max_fps=fps,
-                         audio=audio, codec=codec)
+                         audio=audio, codec=codec,
+                         capture_orientation=capture_orientation)
     if not stream.start():
         print("FAILED to start session")
         return
@@ -917,6 +960,12 @@ def run_window(serial: str | None = None, keymap_name: str = "df.json",
     injector = Injector(control, keymap)
     injector.start()
 
+    # Render the window via OpenGL, not Direct3D. The hw video decoder uses a
+    # D3D11 device; if SDL also drives the window on D3D11, recreating the vsync
+    # surface on a rotation tears that device down under the decoder and
+    # segfaults. OpenGL keeps the window's GPU context separate from the
+    # decoder's, so the surface can be recreated freely (no decoder teardown).
+    os.environ.setdefault("SDL_RENDER_DRIVER", "opengl")
     pygame.init()
     try:
         from .runtime import icon_png
@@ -933,7 +982,12 @@ def run_window(serial: str | None = None, keymap_name: str = "df.json",
         """Create the display requesting VSYNC, so every present locks to the
         monitor's refresh = even frame pacing (no microjudder from the phone's
         slightly jittery frame arrival). DOUBLEBUF is needed for vsync to engage;
-        fall back to a plain window if the driver won't give us a vsync surface."""
+        fall back to a plain window if the driver won't give us a vsync surface.
+
+        With the window on OpenGL (see SDL_RENDER_DRIVER) the surface can be
+        recreated without disturbing the decoder's separate D3D11 device, so we
+        no longer pause/free the decoder here (doing so flakily lost its codec
+        config and froze the stream)."""
         try:
             return pygame.display.set_mode(size, flags | pygame.DOUBLEBUF, vsync=1)
         except pygame.error:
@@ -1067,8 +1121,12 @@ def run_window(serial: str | None = None, keymap_name: str = "df.json",
 
     def update_caption():
         if not control.alive:
-            pygame.display.set_caption(
-                "Wraith — ⚠ PHONE DISCONNECTED   (F9 = quit, then relaunch)")
+            if stream.server_died:
+                pygame.display.set_caption(
+                    "Wraith — ⚠ server crashed on rotation   (F9 = quit, relaunch)")
+            else:
+                pygame.display.set_caption(
+                    "Wraith — ⚠ PHONE DISCONNECTED   (F9 = quit, then relaunch)")
             return
         if edit_mode:
             mode = "EDIT MODE (drag keys onto the screen, F10 = play)"
@@ -1238,7 +1296,9 @@ def run_window(serial: str | None = None, keymap_name: str = "df.json",
         if new_frame:
             last_seq = seq
             if (fw, fh) != (cur_w, cur_h):
-                # re-fit window on orientation flip (keep the editor sidebar)
+                # re-fit window on orientation flip (keep the editor sidebar).
+                # Safe because the window renders on OpenGL, separate from the
+                # decoder's D3D11 device (see SDL_RENDER_DRIVER above).
                 fit_window(fw, fh, KeymapEditor.SIDEBAR_W if edit_mode else 0)
                 rebuild_injector(fw, fh)
             last_arr = arr
@@ -1334,6 +1394,11 @@ def cli(argv=None):
                     help="hide the portrait nav sidebar in the mirror")
     ap.add_argument("--save-dir", help="folder for F12 recordings (default ~/Videos/Wraith)")
     ap.add_argument("--seconds", type=float, help="auto-quit after N seconds (testing)")
+    ap.add_argument("--capture-orientation", dest="capture_orientation", default=None,
+                    help="lock the captured video orientation so a device rotation "
+                         "can't drop the session, e.g. '@90' / '@270' (landscape), "
+                         "'@0' (portrait), or bare '@' to lock the current angle. "
+                         "Omit to follow device rotation.")
     a = ap.parse_args(argv)
     if a.no_hwdec:
         os.environ["WRAITH_NO_HWDEC"] = "1"   # before resolve() so the probe sees it
@@ -1346,7 +1411,8 @@ def cli(argv=None):
                max_size=a.max_size, bitrate=a.bitrate, fps=a.fps,
                screen_off=a.screen_off, audio=not a.no_audio, gain=a.gain,
                mic=not a.no_mic, mic_gain=a.mic_gain, show_toolbar=not a.no_toolbar,
-               save_dir=a.save_dir, codec=a.codec)
+               save_dir=a.save_dir, codec=a.codec,
+               capture_orientation=a.capture_orientation)
 
 
 if __name__ == "__main__":
